@@ -1,0 +1,9 @@
+{
+    "plugin.name": "增强型 Slug",
+    "label": "增强型 Slug",
+    "description": "根据另一个字段自动生成拼音或翻译 Slug。",
+    "settings.title": "增强型 Slug 设置",
+    "options.title": "配置",
+    "options.sourceField.label": "源字段名称",
+    "options.sourceField.description": "用于生成 Slug 的字段的 API ID (例如, title)。"
+}

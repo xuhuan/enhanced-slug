@@ -1,1 +1,9 @@
-{}
+{
+    "plugin.name": "Enhanced Slug",
+    "label": "Enhanced Slug",
+    "description": "Generates a slug from another field (Pinyin/Translate).",
+    "settings.title": "Enhanced Slug Settings",
+    "options.title": "Configuration",
+    "options.sourceField.label": "Source Field Name",
+    "options.sourceField.description": "API ID of the field to generate the slug from (e.g., title)."
+}
