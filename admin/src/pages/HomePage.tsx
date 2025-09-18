@@ -1,75 +1,82 @@
-import { Main } from '@strapi/design-system';
-import { useIntl } from 'react-intl';
-
 import { getTranslation } from '../utils/getTranslation';
-import { Box } from '@strapi/design-system';
-import { Button } from '@strapi/design-system';
+import React, { useEffect, useState } from 'react';
+import { Main } from '@strapi/design-system';
+import { Box, Grid, Button, TextInput, Field, SingleSelect, SingleSelectOption } from '@strapi/design-system';
 import { useFetchClient, useNotification } from '@strapi/strapi/admin';
-import { useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { PLUGIN_ID } from '../pluginId';
-import { Check } from '@strapi/icons';
-import { Typography } from '@strapi/design-system';
-import { Grid } from '@strapi/design-system';
-import { SingleSelect } from '@strapi/design-system';
-import { SingleSelectOption } from '@strapi/design-system';
+
+const engines = [
+  'pinyin', 'baidu', 'tencent', 'aliyun', 'deepl', 'volcengine', 'google'
+];
 
 const HomePage = () => {
-  const { formatMessage } = useIntl();
   const { get, post } = useFetchClient();
   const { toggleNotification } = useNotification();
+  const { formatMessage } = useIntl();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [settings, setSettings] = useState({ mode: 'pinyin' });
+  const [settings, setSettings] = useState<any>({ mode: 'pinyin' });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    get(`/${PLUGIN_ID}/settings`)
-      .then((res) => setSettings(res.data))
-      .catch(() => toggleNotification({ type: 'warning', message: 'Failed to load settings' }))
-      .finally(() => setIsLoading(false));
-  }, [get, toggleNotification]);
+    get(`/${PLUGIN_ID}/settings`).then(res => setSettings(res.data || {}));
+  }, []);
 
-  const handleSave = async () => {
-    setIsSaving(true);
+  const save = async () => {
+    setSaving(true);
     try {
       await post(`/${PLUGIN_ID}/settings`, settings);
-      toggleNotification({ type: 'success', message: 'Settings saved successfully' });
-    } catch (error) {
-      toggleNotification({ type: 'warning', message: 'Failed to save settings' });
+      toggleNotification({ type: 'success', message: '保存成功' });
+    } catch {
+      toggleNotification({ type: 'warning', message: '保存失败' });
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   };
 
   return (
     <Main>
-      {!isLoading && (
-        <Box background="neutral0" padding={6} shadow="filterShadow" hasRadius>
-          <Grid.Root gap={5} padding={4}>
-            <Grid.Item col={12} s={12}>
-              <Typography variant="delta" as="h3">
-                {formatMessage({ id: getTranslation('settings.title') })}
-              </Typography>
-            </Grid.Item>
-            <Grid.Item col={12} s={12}>
-              <SingleSelect
-                value={settings.mode}
-                onChange={(value: 'pinyin' | 'google-translate') =>
-                  setSettings({ ...settings, mode: value })
-                }
-              >
-                <SingleSelectOption value="pinyin">Pinyin</SingleSelectOption>
-                <SingleSelectOption value="google-translate">Google Translate</SingleSelectOption>
+      <Box padding={6} background="neutral0" shadow="filterShadow" hasRadius>
+        <Grid.Root gap={5}>
+          <Grid.Item col={12}>
+            <Field.Root name="mode" required>
+              <Field.Label>{formatMessage({ id: `${PLUGIN_ID}.settings.mode` })}</Field.Label>
+              <SingleSelect value={settings.mode} onChange={(v: any) => setSettings({ ...settings, mode: v })}>
+                {engines.map(m => <SingleSelectOption key={m} value={m}>{m}</SingleSelectOption>)}
               </SingleSelect>
-            </Grid.Item>
-            <Grid.Item col={12} s={12}>
-              <Button onClick={handleSave} loading={isSaving} startIcon={<Check />}>
-                {formatMessage({ id: getTranslation('settings.save') })}
-              </Button>
-            </Grid.Item>
-          </Grid.Root>
-        </Box>
-      )}
+            </Field.Root>
+          </Grid.Item>
+
+          {settings.mode !== 'pinyin' && (
+            <>
+              <Grid.Item col={12}>
+                <Field.Root name="apiKey">
+                  <Field.Label>{formatMessage({ id: `${PLUGIN_ID}.settings.apiKey` })}</Field.Label>
+                  <Field.Input
+                    as={TextInput}
+                    value={settings.apiKey || ''}
+                    onChange={(e: { target: { value: any; }; }) => setSettings({ ...settings, apiKey: e.target.value })}
+                  />
+                </Field.Root>
+              </Grid.Item>
+              <Grid.Item col={12}>
+                <Field.Root name="apiSecret">
+                  <Field.Label>{formatMessage({ id: `${PLUGIN_ID}.settings.apiSecret` })}</Field.Label>
+                  <Field.Input
+                    as={TextInput}
+                    value={settings.apiSecret || ''}
+                    onChange={(e: { target: { value: any; }; }) => setSettings({ ...settings, apiSecret: e.target.value })}
+                  />
+                </Field.Root>
+              </Grid.Item>
+            </>
+          )}
+
+          <Grid.Item col={12}>
+            <Button onClick={save} loading={saving}>{formatMessage({ id: `${PLUGIN_ID}.settings.save` })}</Button>
+          </Grid.Item>
+        </Grid.Root>
+      </Box>
     </Main>
   );
 };

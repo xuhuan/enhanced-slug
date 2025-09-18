@@ -22,7 +22,7 @@ export default {
       components: {
         Input: async () =>
           import(
-            './components/Input'
+            './components/SlugInput'
           ),
       },
       options: {

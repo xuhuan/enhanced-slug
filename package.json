@@ -31,11 +31,12 @@
     "test:ts:back": "run -T tsc -p server/tsconfig.json"
   },
   "dependencies": {
-    "@alicloud/alimt20181012": "^1.4.1",
     "@strapi/design-system": "^2.0.0-rc.29",
     "@strapi/icons": "^2.0.0-rc.29",
     "@volcengine/openapi": "^1.32.0",
+    "axios": "^1.12.2",
     "baidu-translate-api": "^0.4.3",
+    "crypto-js": "^4.2.0",
     "deepl-node": "^1.19.1",
     "enhanced-slug": "link:.yalc/enhanced-slug",
     "google-translate-api-x": "^10.7.2",
