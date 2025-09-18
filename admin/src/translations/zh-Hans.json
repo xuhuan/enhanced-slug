@@ -3,7 +3,11 @@
     "label": "增强型 Slug",
     "description": "根据另一个字段自动生成拼音或翻译 Slug。",
     "settings.title": "增强型 Slug 设置",
+    "settings.save": "保存",
     "options.title": "配置",
     "options.sourceField.label": "源字段名称",
-    "options.sourceField.description": "用于生成 Slug 的字段的 API ID (例如, title)。"
+    "options.sourceField.description": "用于生成 Slug 的字段的 API ID (例如, title)。",
+    "options.advanced":"设置",
+    "options.advanced.required.label":"必须的",
+    "options.advanced.required.description":"如果此字段为空，则无法创建字段。"
 }

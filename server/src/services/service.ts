@@ -26,9 +26,6 @@ function isPluginSettings(config: unknown): config is PluginSettings {
 }
 
 const service = ({ strapi }: { strapi: Core.Strapi }) => ({
-  getWelcomeMessage() {
-    return 'Welcome to Strapi 🚀';
-  },
   async getSettings(): Promise<PluginSettings> { // 3. 明确函数的返回类型
     const store = getPluginStore(strapi);
     const config = await store.get({ key: 'settings' });

@@ -1,15 +1,14 @@
-import { getTranslation } from './utils/getTranslation';
+import { addPrefix, getTranslation } from './utils/getTranslation';
 import { PLUGIN_ID } from './pluginId';
 import { Initializer } from './components/Initializer';
 import { PluginIcon } from './components/PluginIcon';
-import { Typhoon as SlugIcon } from '@strapi/icons';
 
 export default {
   register(app: any) {
     // 注册自定义字段
     app.customFields.register({
-      name: 'enhanced-slug',
-      PLUGIN_ID: 'enhanced-slug',
+      name: PLUGIN_ID,
+      pluginId: PLUGIN_ID,
       type: 'string',
       intlLabel: {
         id: `${PLUGIN_ID}.label`,
@@ -19,7 +18,7 @@ export default {
         id: `${PLUGIN_ID}.description`,
         defaultMessage: 'Generates a slug from another field (Pinyin/Translate).',
       },
-      icon: SlugIcon,
+      icon: PluginIcon,
       components: {
         Input: async () =>
           import(
@@ -31,7 +30,7 @@ export default {
           {
             sectionTitle: {
               id: `${PLUGIN_ID}.options.title`,
-              defaultMessage: 'Configuration',
+              defaultMessage: 'Must Required Field',
             },
             items: [
               {
@@ -45,6 +44,31 @@ export default {
                   id: `${PLUGIN_ID}.options.sourceField.description`,
                   defaultMessage: 'API ID of the field to generate the slug from (e.g., title).',
                 },
+
+              },
+            ],
+          },
+        ],
+        advanced: [
+          {
+            sectionTitle: {
+              id: `${PLUGIN_ID}.options.advanced`,
+              defaultMessage: "Advanced Settings",
+            },
+            items: [
+              {
+                name: "required",
+                type: "checkbox",
+                intlLabel: {
+                  id: `${PLUGIN_ID}.options.advanced.required.label`,
+                  defaultMessage: "Required field",
+                },
+                description: {
+                  id: `${PLUGIN_ID}.options.advanced.required.description`,
+                  defaultMessage:
+                    "You won't be able to create an entry if this field is empty",
+                },
+                defaultValue: true,
               },
             ],
           },
@@ -80,7 +104,7 @@ export default {
         try {
           const { default: data } = await import(`./translations/${locale}.json`);
 
-          return { data, locale };
+          return { data: addPrefix(data, PLUGIN_ID), locale };
         } catch {
           return { data: {}, locale };
         }

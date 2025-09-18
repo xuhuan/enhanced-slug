@@ -3,7 +3,11 @@
     "label": "Enhanced Slug",
     "description": "Generates a slug from another field (Pinyin/Translate).",
     "settings.title": "Enhanced Slug Settings",
+    "settings.save": "Save",
     "options.title": "Configuration",
     "options.sourceField.label": "Source Field Name",
-    "options.sourceField.description": "API ID of the field to generate the slug from (e.g., title)."
+    "options.sourceField.description": "API ID of the field to generate the slug from (e.g., title).",
+    "options.advanced":"Advanced Settings",
+    "options.advanced.required.label":"Required field",
+    "options.advanced.required.description":"You won't be able to create an entry if this field is empty"
 }

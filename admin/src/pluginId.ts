@@ -1,1 +1,8 @@
-export const PLUGIN_ID = 'enhanced-slug';
+import pluginPkg from "../../package.json";
+
+const PLUGIN_ID = pluginPkg.name.replace(
+    /^(@[^-,.][\w,-]+\/)-/i,
+    "",
+);
+
+export { PLUGIN_ID };

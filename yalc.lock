@@ -1,9 +1,0 @@
-{
-  "version": "v1",
-  "packages": {
-    "enhanced-slug": {
-      "signature": "7cade626f132f6f9c7404a9aeb360603",
-      "link": true
-    }
-  }
-}

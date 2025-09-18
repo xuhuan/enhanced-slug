@@ -48,12 +48,11 @@ const HomePage = () => {
           <Grid.Root gap={5} padding={4}>
             <Grid.Item col={12} s={12}>
               <Typography variant="delta" as="h3">
-                {formatMessage({ id: getTranslation('plugin.name') })} Configuration
+                {formatMessage({ id: getTranslation('settings.title') })}
               </Typography>
             </Grid.Item>
             <Grid.Item col={12} s={12}>
               <SingleSelect
-                label="Generation Mode"
                 value={settings.mode}
                 onChange={(value: 'pinyin' | 'google-translate') =>
                   setSettings({ ...settings, mode: value })
@@ -65,7 +64,7 @@ const HomePage = () => {
             </Grid.Item>
             <Grid.Item col={12} s={12}>
               <Button onClick={handleSave} loading={isSaving} startIcon={<Check />}>
-                Save
+                {formatMessage({ id: getTranslation('settings.save') })}
               </Button>
             </Grid.Item>
           </Grid.Root>

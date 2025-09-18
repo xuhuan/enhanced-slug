@@ -1,18 +1,12 @@
 import type { Core } from '@strapi/strapi';
+import { PLUGIN_ID } from "../../../admin/src/pluginId";
 
 const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
-  index(ctx) {
-    ctx.body = strapi
-      .plugin('enhanced-slug')
-      // the name of the service file & the method.
-      .service('service')
-      .getWelcomeMessage();
-  },
   // --- Settings Controller ---
   async getSettings(ctx) {
     try {
       ctx.body = await strapi
-        .plugin('enhanced-slug')
+        .plugin(PLUGIN_ID)
         .service('service')
         .getSettings();
     } catch (err) {
@@ -24,7 +18,7 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
     try {
       const newSettings = ctx.request.body;
       ctx.body = await strapi
-        .plugin('enhanced-slug')
+        .plugin(PLUGIN_ID)
         .service('service')
         .setSettings(newSettings);
     } catch (err) {
@@ -40,7 +34,7 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
         return ctx.badRequest('sourceText is required');
       }
       const slug = await strapi
-        .plugin('enhanced-slug')
+        .plugin(PLUGIN_ID)
         .service('service')
         .generate(sourceText);
       ctx.body = { slug };
