@@ -1,89 +1,149 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useIntl } from 'react-intl';
-import { TextInput, Field, Flex, IconButton, Tooltip } from '@strapi/design-system';
-import { ArrowClockwise } from '@strapi/icons';
-import api from '../../utils/api';
+import {
+    Field,
+    FieldLabel,
+    FieldHint,
+    FieldError,
+    FieldInput,
+    Flex,
+    Button,
+} from '@strapi/design-system';
+import { useNotification } from '@strapi/strapi/admin';
 import { getTranslation } from '../../utils/getTranslation';
+import api from '../../utils/api';
 
 interface SlugInputProps {
-    value: string;
-    onChange: (value: string) => void;
-    sourceText?: string;        // 来源标题文本
-    targetLang?: string;        // 目标语言（默认 zh-Hans -> en）
+    attribute: {
+        sourceField?: string;
+    };
+    description?: {
+        id: string;
+        defaultMessage: string;
+    };
     disabled?: boolean;
+    error?: string;
+    intlLabel: {
+        id: string;
+        defaultMessage: string;
+    };
+    name: string;
+    onChange: (event: { target: { name: string; value: string; type: string } }) => void;
+    required?: boolean;
+    value?: string;
+    // Access to other form fields
+    allFields?: Record<string, any>;
 }
 
 const SlugInput: React.FC<SlugInputProps> = ({
-    value,
+    attribute,
+    description,
+    disabled,
+    error,
+    intlLabel,
+    name,
     onChange,
-    sourceText = '',
-    targetLang = 'en',
-    disabled = false,
+    required,
+    value,
+    allFields,
 }) => {
-    const { formatMessage, locale } = useIntl();
-    const [loading, setLoading] = useState(false);
+    const { formatMessage } = useIntl();
+    const { toggleNotification } = useNotification();
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [localValue, setLocalValue] = useState(value || '');
+
+    useEffect(() => {
+        setLocalValue(value || '');
+    }, [value]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        setLocalValue(newValue);
+        onChange({
+            target: {
+                name,
+                value: newValue,
+                type: 'text',
+            },
+        });
+    };
 
     const handleGenerate = async () => {
-        if (!sourceText) return;
-        setLoading(true);
-        try {
-            const res = await api.post('/slug/generate', {
-                text: sourceText,
-                options: {
-                    targetLang,
-                },
+        // Get source field value
+        const sourceField = attribute?.sourceField || 'title';
+        const sourceValue = allFields?.[sourceField] || '';
+
+        if (!sourceValue) {
+            toggleNotification({
+                type: 'warning',
+                message: `No content in ${sourceField} field to generate slug from`,
             });
-            if (res?.data?.slug) {
-                onChange(res.data.slug);
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            const response = await api.post('/generate', {
+                text: sourceValue,
+            });
+
+            if (response.data?.slug) {
+                const newSlug = response.data.slug;
+                setLocalValue(newSlug);
+                onChange({
+                    target: {
+                        name,
+                        value: newSlug,
+                        type: 'text',
+                    },
+                });
+                toggleNotification({
+                    type: 'success',
+                    message: 'Slug generated successfully',
+                });
+            } else {
+                throw new Error('No slug returned');
             }
         } catch (err) {
-            console.error('Slug generation failed:', err);
+            toggleNotification({
+                type: 'danger',
+                message: formatMessage({ id: getTranslation('input.error') }),
+            });
         } finally {
-            setLoading(false);
+            setIsGenerating(false);
         }
     };
 
     return (
         <Field
-            name="slug"
-            hint={formatMessage({
-                id: getTranslation('slugInput.hint'),
-                defaultMessage: 'URL-friendly identifier generated from title',
-            })}
+            name={name}
+            id={name}
+            error={error}
+            hint={description && formatMessage(description)}
+            required={required}
         >
-            <Flex gap={2} alignItems="flex-end">
-                <TextInput
-                    label={formatMessage({
-                        id: getTranslation('slugInput.label'),
-                        defaultMessage: 'Slug',
-                    })}
-                    name="slug"
-                    value={value}
-                    onChange={(e: { target: { value: string; }; }) => onChange(e.target.value)}
-                    disabled={disabled || loading}
-                    placeholder={formatMessage({
-                        id: getTranslation('slugInput.placeholder'),
-                        defaultMessage: 'auto-generated slug',
-                    })}
+            <FieldLabel>{formatMessage(intlLabel)}</FieldLabel>
+            <Flex gap={2}>
+                <FieldInput
+                    type="text"
+                    placeholder={formatMessage({ id: getTranslation('input.placeholder') })}
+                    value={localValue}
+                    onChange={handleInputChange}
+                    disabled={disabled || isGenerating}
                 />
-                <Tooltip
-                    description={formatMessage({
-                        id: getTranslation('slugInput.generate'),
-                        defaultMessage: 'Generate from title',
-                    })}
+                <Button
+                    onClick={handleGenerate}
+                    loading={isGenerating}
+                    disabled={disabled}
+                    variant="secondary"
                 >
-                    <IconButton
-                        disabled={disabled || !sourceText || loading}
-                        onClick={handleGenerate}
-                        label={formatMessage({
-                            id: getTranslation('slugInput.generate'),
-                            defaultMessage: 'Generate from title',
-                        })}
-                        icon={<ArrowClockwise />}
-                        loading={loading}
-                    />
-                </Tooltip>
+                    {formatMessage({
+                        id: getTranslation(isGenerating ? 'input.generating' : 'input.generate')
+                    })}
+                </Button>
             </Flex>
+            {description && <FieldHint />}
+            {error && <FieldError />}
         </Field>
     );
 };

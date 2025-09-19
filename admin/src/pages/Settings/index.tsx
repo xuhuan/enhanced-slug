@@ -32,11 +32,6 @@ type TranslatorConfig = {
   projectId?: string;
 };
 
-type FieldMapping = {
-  contentType: string;
-  sourceField: string;
-  targetField: string;
-};
 
 interface Settings {
   mode: 'translation' | 'pinyin';
@@ -50,7 +45,6 @@ interface Settings {
   };
   defaultTargetLanguage: string;
   autoSwitchOnFailure: boolean;
-  fieldMappings: FieldMapping[];
 }
 
 const SettingsPage: React.FC = () => {
@@ -61,7 +55,6 @@ const SettingsPage: React.FC = () => {
     translators: {},
     defaultTargetLanguage: 'en',
     autoSwitchOnFailure: true,
-    fieldMappings: [],
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -113,28 +106,6 @@ const SettingsPage: React.FC = () => {
     }));
   };
 
-  const handleFieldMappingAdd = () => {
-    setSettings((prev) => ({
-      ...prev,
-      fieldMappings: [...prev.fieldMappings, { contentType: '', sourceField: '', targetField: '' }],
-    }));
-  };
-
-  const handleFieldMappingRemove = (index: number) => {
-    setSettings((prev) => {
-      const newMappings = [...prev.fieldMappings];
-      newMappings.splice(index, 1);
-      return { ...prev, fieldMappings: newMappings };
-    });
-  };
-
-  const handleFieldMappingChange = (index: number, field: keyof FieldMapping, value: string) => {
-    setSettings((prev) => {
-      const newMappings = [...prev.fieldMappings];
-      newMappings[index] = { ...newMappings[index], [field]: value };
-      return { ...prev, fieldMappings: newMappings };
-    });
-  };
 
   if (isLoading) {
     return (
@@ -163,12 +134,6 @@ const SettingsPage: React.FC = () => {
           onClick={() => setActiveTab('translators')}
         >
           {formatMessage({ id: getTranslation('settings.tabs.translators') })}
-        </Button>
-        <Button
-          variant={activeTab === 'mappings' ? 'primary' : 'tertiary'}
-          onClick={() => setActiveTab('mappings')}
-        >
-          {formatMessage({ id: getTranslation('settings.tabs.mappings') })}
         </Button>
       </Flex>
 
@@ -288,75 +253,6 @@ const SettingsPage: React.FC = () => {
         </Box>
       )}
 
-      {/* Field mappings */}
-      {activeTab === 'mappings' && (
-        <Box padding={4} background="neutral0" hasRadius>
-          <Flex justifyContent="space-between" marginBottom={4}>
-            <Typography variant="beta">
-              {formatMessage({ id: getTranslation('settings.mappings.title') })}
-            </Typography>
-            <Button startIcon={<Plus />} variant="secondary" onClick={handleFieldMappingAdd}>
-              {formatMessage({ id: getTranslation('settings.mappings.add') })}
-            </Button>
-          </Flex>
-
-          {settings.fieldMappings.length > 0 ? (
-            <>
-              {/* // <Grid.Root gap={4}> */}
-              {settings.fieldMappings.map((mapping, index) => (
-                <Grid.Root gap={4}>
-                  {/* <Flex key={index} gap={2} alignItems="flex-end"> */}
-                  <Grid.Item col={4}>
-                    {' '}
-                    <TextInput
-                      label={formatMessage({ id: getTranslation('settings.mappings.contentType') })}
-                      value={mapping.contentType}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleFieldMappingChange(index, 'contentType', e.target.value)
-                      }
-                    />
-                  </Grid.Item>
-                  <Grid.Item col={4}>
-                    {' '}
-                    <TextInput
-                      label={formatMessage({ id: getTranslation('settings.mappings.sourceField') })}
-                      value={mapping.sourceField}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleFieldMappingChange(index, 'sourceField', e.target.value)
-                      }
-                    />
-                  </Grid.Item>
-                  <Grid.Item col={4}>
-                    {' '}
-                    <TextInput
-                      label={formatMessage({ id: getTranslation('settings.mappings.targetField') })}
-                      value={mapping.targetField}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleFieldMappingChange(index, 'targetField', e.target.value)
-                      }
-                    />
-                  </Grid.Item>
-                  <Grid.Item col={4}>
-                    {' '}
-                    <IconButton
-                      label="Delete"
-                      icon={<Trash />}
-                      variant="danger-light"
-                      onClick={() => handleFieldMappingRemove(index)}
-                    />
-                  </Grid.Item>
-                  {/* </Flex> */}
-                </Grid.Root>
-              ))}
-              {/* </Grid.Root> */}
-            </>
-          ) : (
-            <EmptyStateLayout
-              content={formatMessage({ id: getTranslation('settings.mappings.empty') })}
-            />
-          )}
-        </Box>
-      )}
 
       <Flex justifyContent="flex-end" marginTop={6}>
         <Button loading={isSaving} startIcon={<Check />} onClick={handleSave}>

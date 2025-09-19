@@ -1,6 +1,19 @@
 {
-  "version": "0.0.0",
-  "keywords": [],
+  "version": "1.0.0",
+  "keywords": [
+    "strapi",
+    "plugin",
+    "slug",
+    "translation",
+    "pinyin",
+    "seo",
+    "url",
+    "baidu",
+    "tencent",
+    "deepl",
+    "google-translate",
+    "alibaba"
+  ],
   "type": "commonjs",
   "exports": {
     "./package.json": "./package.json",

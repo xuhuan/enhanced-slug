@@ -92,7 +92,6 @@ export const TranslationEngineConfig: React.FC<Props> = ({
       <Flex justifyContent="space-between" alignItems="center" marginBottom={4}>
         <Typography variant="beta">{title}</Typography>
 
-        {/* 改成 Toggle，而不是 ToggleInput */}
         <Flex gap={2} alignItems="center">
           <Toggle
             onLabel={formatMessage({ id: getTranslation('translator.enabled') })}
