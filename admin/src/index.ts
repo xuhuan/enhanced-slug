@@ -6,48 +6,6 @@ import SettingsPage from './pages/Settings';
 
 export default {
   register(app: any) {
-    // app.customFields.register({
-    //   name: PLUGIN_ID,
-    //   pluginId: PLUGIN_ID,
-    //   type: 'string',
-    //   intlLabel: {
-    //     id: getTranslation('label'),
-    //     defaultMessage: 'Enhanced Slug',
-    //   },
-    //   intlDescription: {
-    //     id: getTranslation('description'),
-    //     defaultMessage: 'Generates a slug from another field (Pinyin/Translate).',
-    //   },
-    //   icon: PluginIcon,
-    //   components: {
-    //     Input: async () => import('./components/SlugInput'),
-    //   },
-    //   options: {
-    //     advanced: [
-    //       {
-    //         sectionTitle: {
-    //           id: getTranslation('options.advanced'),
-    //           defaultMessage: "Advanced Settings",
-    //         },
-    //         items: [
-    //           {
-    //             name: 'options.sourceField',
-    //             type: 'text',
-    //             intlLabel: {
-    //               id: getTranslation('options.sourceField.label'),
-    //               defaultMessage: 'Source field',
-    //             },
-    //             description: {
-    //               id: getTranslation('options.sourceField.description'),
-    //               defaultMessage: 'The field to generate slug from',
-    //             },
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // });
-
 
     app.customFields.register({
       name: PLUGIN_ID,
@@ -129,27 +87,27 @@ export default {
       Component: async () => import('./pages/App').then(m => m.App),
     });
 
-    // app.createSettingSection(
-    //   {
-    //     id: PLUGIN_ID,
-    //     intlLabel: {
-    //       id: getTranslation('plugin.name'),
-    //       defaultMessage: 'Enhanced Slug',
-    //     },
-    //   },
-    //   [
-    //     {
-    //       intlLabel: {
-    //         id: getTranslation('settings.title'),
-    //         defaultMessage: 'Settings',
-    //       },
-    //       id: 'settings',
-    //       to: `/settings/${PLUGIN_ID}`,
-    //       Component: SettingsPage,
-    //       permissions: [],
-    //     },
-    //   ]
-    // );
+    app.createSettingSection(
+      {
+        id: PLUGIN_ID,
+        intlLabel: {
+          id: getTranslation('plugin.name'),
+          defaultMessage: 'Enhanced Slug',
+        },
+      },
+      [
+        {
+          intlLabel: {
+            id: getTranslation('settings.title'),
+            defaultMessage: 'Settings',
+          },
+          id: 'settings',
+          to: `/settings/${PLUGIN_ID}`,
+          Component: SettingsPage,
+          permissions: [],
+        },
+      ]
+    );
 
     app.registerPlugin({
       id: PLUGIN_ID,

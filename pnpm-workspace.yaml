@@ -1,4 +1,5 @@
 onlyBuiltDependencies:
+  - '@alicloud/openapi-core'
   - '@swc/core'
   - core-js-pure
   - esbuild
