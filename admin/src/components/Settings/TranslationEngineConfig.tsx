@@ -118,7 +118,7 @@ export const TranslationEngineConfig: React.FC<Props> = ({
                     label={getFieldLabel(field)}
                     type={
                       field.toLowerCase().includes('key') || field.toLowerCase().includes('secret')
-                        ? 'password'
+                        ? 'text'
                         : 'text'
                     }
                     value={config[field as keyof TranslatorConfig] || ''}

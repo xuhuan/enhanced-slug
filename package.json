@@ -59,7 +59,8 @@
     "enhanced-slug": "link:.yalc/enhanced-slug",
     "pinyin-pro": "^3.27.0",
     "react-intl": "^7.1.11",
-    "tencentcloud-sdk-nodejs": "^4.1.118"
+    "tencentcloud-sdk-nodejs": "^4.1.118",
+    "tencentcloud-sdk-nodejs-tmt": "^4.1.117"
   },
   "devDependencies": {
     "@strapi/sdk-plugin": "^5.3.2",

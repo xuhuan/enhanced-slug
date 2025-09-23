@@ -21,7 +21,7 @@
     "settings.mappings.targetField": "目标字段 (Slug)",
     "settings.mappings.empty": "未配置字段映射。添加映射以自动为您的内容类型生成 slug。",
     "translator.baidu.title": "百度翻译",
-    "translator.tencent.title": "腾讯翻译君",
+    "translator.tencent.title": "腾讯机器翻译",
     "translator.alibaba.title": "阿里云翻译",
     "translator.deepl.title": "DeepL",
     "translator.volcano.title": "火山引擎",

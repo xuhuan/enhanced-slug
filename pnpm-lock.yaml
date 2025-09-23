@@ -56,6 +56,9 @@ importers:
       tencentcloud-sdk-nodejs:
         specifier: ^4.1.118
         version: 4.1.118
+      tencentcloud-sdk-nodejs-tmt:
+        specifier: ^4.1.117
+        version: 4.1.117
     devDependencies:
       '@strapi/sdk-plugin':
         specifier: ^5.3.2
@@ -5835,6 +5838,14 @@ packages:
   tarn@3.0.2:
     resolution: {integrity: sha512-51LAVKUSZSVfI05vjPESNc5vwqqZpbXCsU+/+wxlOrUjk2SnFTt97v9ZgQrD4YmxYW1Px6w2KjaDitCfkvgxMQ==}
     engines: {node: '>=8.0.0'}
+
+  tencentcloud-sdk-nodejs-common@4.1.66:
+    resolution: {integrity: sha512-4rhNRdUGKIlMfqE4HOVHQM2HsBaoAP6G4XPnmzyt0eIQB9aklyXg0Rn0g/6o/Q7O9I08p/Ce1cdPi5+R8EOOTA==}
+    engines: {node: '>=10'}
+
+  tencentcloud-sdk-nodejs-tmt@4.1.117:
+    resolution: {integrity: sha512-brRLhWYt5WPxJUubyG0+9NjPC2en5/apLtU3cqFGIqjR4M8f4CzjK/s1TD+W25b81zDqVv2F95eDdxKCTurcNA==}
+    engines: {node: '>=10'}
 
   tencentcloud-sdk-nodejs@4.1.118:
     resolution: {integrity: sha512-SZdGU36NB2U3GaRUUu1CokaRWReTuT0CCtPFWnUoNcaC/UkPcmQiOVfLd+VZwZV7YRlhcWCL4y3RZshRyy507w==}
@@ -13324,6 +13335,28 @@ snapshots:
       yallist: 4.0.0
 
   tarn@3.0.2: {}
+
+  tencentcloud-sdk-nodejs-common@4.1.66:
+    dependencies:
+      form-data: 3.0.4
+      get-stream: 6.0.1
+      https-proxy-agent: 5.0.1
+      is-stream: 2.0.1
+      json-bigint: 1.0.0
+      node-fetch: 2.7.0
+      tslib: 1.13.0
+      uuid: 9.0.1
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+
+  tencentcloud-sdk-nodejs-tmt@4.1.117:
+    dependencies:
+      tencentcloud-sdk-nodejs-common: 4.1.66
+      tslib: 1.13.0
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
 
   tencentcloud-sdk-nodejs@4.1.118:
     dependencies:
