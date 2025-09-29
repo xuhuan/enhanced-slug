@@ -55,7 +55,7 @@ interface Theme {
 const useDebounce = <T extends any[]>(callback: (...args: T) => void, delay: number) => {
   const callbackRef = useRef(callback);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // 始终保存最新的 callback，但不作为依赖项
   callbackRef.current = callback;
 
@@ -104,7 +104,8 @@ const SlugInput = (props: SlugInputProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [reGenerate, setReGenerate] = useState<boolean>(false);
   const [isAutoGenerating, setIsAutoGenerating] = useState<boolean>(false);
-  
+  const [isManuallyEdited, setIsManuallyEdited] = useState<boolean>(false);
+
   // 使用 ref 存储需要在防抖函数中使用的值
   const lastSourceValueRef = useRef<string>('');
   const contextRef = useRef({ id, model, currentLocale, attribute, onChange, name });
@@ -120,15 +121,9 @@ const SlugInput = (props: SlugInputProps) => {
   }, [attribute?.options?.sourceField]);
 
   console.log('SlugInput Props:', props);
+  console.log('contentType Props:', contentType);
   console.log('Form values (modifiedData):', modifiedData);
   console.log('Attribute options:', attribute?.options);
-
-  const ensureLocaleInSlug = (slug: string) => {
-    if (currentLocale && !slug.endsWith(`-${currentLocale}`)) {
-      return `${slug}-${currentLocale}`;
-    }
-    return slug;
-  };
 
   const uid: string = model || '';
   const key: string = name;
@@ -136,6 +131,15 @@ const SlugInput = (props: SlugInputProps) => {
   const hasSourceField = contentType?.attributes?.hasOwnProperty(sourceField);
   const isI18nEnabled: boolean =
     contentType?.attributes?.[name]?.pluginOptions?.i18n?.localized || false;
+  console.log('SlugInput Props isI18nEnabled:', isI18nEnabled);
+
+  // 只有在启用了 i18n 时才追加语言后缀
+  const ensureLocaleInSlug = (slug: string) => {
+    if (isI18nEnabled && currentLocale && !slug.endsWith(`-${currentLocale}`)) {
+      return `${slug}-${currentLocale}`;
+    }
+    return slug;
+  };
 
   useEffect(() => {
     if (!hasSourceField) {
@@ -202,6 +206,7 @@ const SlugInput = (props: SlugInputProps) => {
     const newValue = e.target.value;
     setInputSlug(newValue);
     setIsValid(null);
+    setIsManuallyEdited(true); // 标记为手动编辑
 
     if (!newValue?.trim() && attribute?.required) {
       setError('Slug cannot be empty');
@@ -211,11 +216,11 @@ const SlugInput = (props: SlugInputProps) => {
       return;
     }
 
-    const isValidSlug = await validateSlug(newValue);
+    // 验证时使用完整的 slug（包含语言后缀）
+    const fullSlug = ensureLocaleInSlug(newValue);
+    const isValidSlug = await validateSlug(fullSlug);
     if (isValidSlug) {
-      const finalSlug = ensureLocaleInSlug(newValue);
-      onChange?.({ target: { name, value: finalSlug } });
-      setInputSlug(newValue);
+      onChange?.({ target: { name, value: fullSlug } });
       setTimeout(() => setIsValid(null), 3000);
     }
   };
@@ -262,10 +267,11 @@ const SlugInput = (props: SlugInputProps) => {
         const generatedSlug = response.data.data.slug;
         const finalSlug = ensureLocaleInSlug(generatedSlug);
 
-        setInputSlug(generatedSlug);
+        // 在输入框中也显示完整的 slug（包含语言后缀）
+        setInputSlug(finalSlug);
         currentContext.onChange?.({ target: { name: currentContext.name, value: finalSlug } });
 
-        await validateSlug(generatedSlug);
+        await validateSlug(finalSlug);
         lastSourceValueRef.current = sourceValue.trim();
       } else {
         throw new Error('No slug returned from service');
@@ -275,13 +281,13 @@ const SlugInput = (props: SlugInputProps) => {
 
       if (isManual) {
         setError('Failed to generate slug from service. Falling back to local generation.');
-        
+
         const localSlug = slugify(sourceValue);
         const finalSlug = ensureLocaleInSlug(localSlug);
-        setInputSlug(localSlug);
+        setInputSlug(finalSlug);
         contextRef.current.onChange?.({ target: { name: contextRef.current.name, value: finalSlug } });
-        
-        await validateSlug(localSlug);
+
+        await validateSlug(finalSlug);
       }
     } finally {
       setIsLoading(false);
@@ -308,8 +314,15 @@ const SlugInput = (props: SlugInputProps) => {
       sourceValue,
       initialSourceValue,
       lastValue: lastSourceValueRef.current,
-      sourceField
+      sourceField,
+      isManuallyEdited
     });
+
+    // 如果用户手动编辑过，不自动生成
+    if (isManuallyEdited) {
+      console.log('Skipping auto-generation: manually edited');
+      return;
+    }
 
     // 只有在源字段真正改变时才触发
     if (
@@ -322,12 +335,13 @@ const SlugInput = (props: SlugInputProps) => {
       console.log('Triggering debounced auto-generation for:', sourceValue);
       debouncedGenerateSlug(sourceValue);
     }
-  }, [modifiedData?.[sourceField], sourceField, initialValues?.[sourceField], debouncedGenerateSlug]);
+  }, [modifiedData?.[sourceField], sourceField, initialValues?.[sourceField], debouncedGenerateSlug, isManuallyEdited]);
 
   const handleReGenerate = async () => {
     const sourceValue = modifiedData?.[sourceField];
     if (sourceValue) {
       setIsLoading(true);
+      setIsManuallyEdited(false); // 重新生成时重置手动编辑标记
       try {
         const { post } = getFetchClient();
         const counter = Math.floor(Math.random() * 1000);
@@ -343,24 +357,24 @@ const SlugInput = (props: SlugInputProps) => {
           const generatedSlug = response.data.data.slug;
           const finalSlug = ensureLocaleInSlug(generatedSlug);
 
-          setInputSlug(generatedSlug);
+          setInputSlug(finalSlug);
           onChange?.({ target: { name, value: finalSlug } });
-          await validateSlug(generatedSlug);
+          await validateSlug(finalSlug);
         } else {
           const localSlug = slugify(textWithSuffix);
           const finalSlug = ensureLocaleInSlug(localSlug);
-          setInputSlug(localSlug);
+          setInputSlug(finalSlug);
           onChange?.({ target: { name, value: finalSlug } });
-          await validateSlug(localSlug);
+          await validateSlug(finalSlug);
         }
       } catch (error) {
         console.error('Error regenerating slug:', error);
         const counter = Math.floor(Math.random() * 1000);
         const localSlug = slugify(sourceValue + `-${counter}`);
         const finalSlug = ensureLocaleInSlug(localSlug);
-        setInputSlug(localSlug);
+        setInputSlug(finalSlug);
         onChange?.({ target: { name, value: finalSlug } });
-        await validateSlug(localSlug);
+        await validateSlug(finalSlug);
       } finally {
         setIsLoading(false);
         setReGenerate(false);
@@ -371,6 +385,7 @@ const SlugInput = (props: SlugInputProps) => {
   const handleManualGenerate = () => {
     const sourceValue = modifiedData?.[sourceField];
     if (sourceValue) {
+      setIsManuallyEdited(false); // 手动生成时重置手动编辑标记
       performSlugGeneration(sourceValue, true);
     }
   };
@@ -484,6 +499,7 @@ const SlugInput = (props: SlugInputProps) => {
       <Field.Hint>
         Source: "{sourceField}" | Auto-generation delay: 1.5s | Mode:{' '}
         {attribute?.options?.mode || 'translation'}
+        {isI18nEnabled && currentLocale && ` | i18n: enabled (${currentLocale})`}
       </Field.Hint>
       {error && <Field.Error>{error}</Field.Error>}
     </Field.Root>
