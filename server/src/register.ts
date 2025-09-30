@@ -7,6 +7,7 @@ const register = async ({ strapi }: { strapi: Core.Strapi }) => {
   console.log('Strapi admin available:', !!strapi.admin);
   console.log('Permission service available:', !!strapi.admin?.services?.permission);
 
+
   // 检查权限服务是否存在
   if (strapi.admin?.services?.permission) {
     try {
@@ -18,7 +19,7 @@ const register = async ({ strapi }: { strapi: Core.Strapi }) => {
         {
           section: 'plugins',
           displayName: 'Find Enhanced Slug Settings',
-          uid: 'settings.read', 
+          uid: 'settings.read',
           pluginName: PLUGIN_ID,
         },
         {

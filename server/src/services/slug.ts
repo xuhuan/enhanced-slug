@@ -36,10 +36,10 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       return this.generatePinyinSlug(text);
     }
 
-    // Try translation mode
+    // 翻译模式
     const slug = await this.generateTranslationSlug(text, targetLang, settings);
 
-    // If translation fails and autoSwitchOnFailure is enabled, fallback to pinyin
+    // 如果翻译失败且启用自动切换,回退到拼音
     if (!slug && settings.autoSwitchOnFailure) {
       strapi.log.info('All translators failed, falling back to pinyin');
       return this.generatePinyinSlug(text);
@@ -53,17 +53,42 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     targetLang: string,
     settings: PluginSettings
   ): Promise<string> {
-    const enabledTranslators = this.getEnabledTranslators(settings);
+    const settingsService = strapi.plugin('enhanced-slug').service('settings');
+    const translators = await this.getAvailableTranslators(settings);
 
-    for (const translator of enabledTranslators) {
+    if (translators.length === 0) {
+      strapi.log.warn('No available translators');
+      return '';
+    }
+
+    // 按使用模式选择翻译器
+    const sortedTranslators = settings.usageMode === 'balanced'
+      ? this.shuffleTranslators(translators)
+      : translators; // priority模式已经排序
+
+    for (const { translator, name } of sortedTranslators) {
       try {
+        const charCount = text.length;
+
+        // 翻译前再次检查可用性
+        const isAvailable = await settingsService.isTranslatorAvailable(name);
+        if (!isAvailable) {
+          strapi.log.info(`Translator ${name} reached monthly limit, skipping`);
+          continue;
+        }
+
         const result = await translator.translate(text, 'auto', targetLang);
+
         if (result.success && result.text) {
+          // 记录使用量
+          await settingsService.recordUsage(name, charCount);
+          strapi.log.info(`Translation successful with ${name}, used ${charCount} chars`);
           return slugify(result.text);
         }
-        strapi.log.warn(`Translator ${translator.getName()} failed: ${result.error}`);
+
+        strapi.log.warn(`Translator ${name} failed: ${result.error}`);
       } catch (error: any) {
-        strapi.log.error(`Error with translator ${translator.getName()}: ${error.message}`);
+        strapi.log.error(`Error with translator ${name}: ${error.message}`);
       }
     }
 
@@ -76,52 +101,59 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     return result.success ? result.text : '';
   },
 
-  getEnabledTranslators(settings: PluginSettings): BaseTranslator[] {
-    const translators: BaseTranslator[] = [];
+  /**
+   * 获取可用的翻译器(已排序并过滤)
+   */
+  async getAvailableTranslators(settings: PluginSettings): Promise<Array<{ translator: BaseTranslator; name: string; priority: number }>> {
     const settingsService = strapi.plugin('enhanced-slug').service('settings');
+    const translators: Array<{ translator: BaseTranslator; name: string; priority: number }> = [];
 
-    if (
-      settings.translators.baidu?.enabled &&
-      settingsService.validateCredentials('baidu', settings.translators.baidu)
-    ) {
-      translators.push(new BaiduTranslator(settings.translators.baidu));
+    const translatorConfigs = [
+      { name: 'baidu', Class: BaiduTranslator, config: settings.translators.baidu },
+      { name: 'tencent', Class: TencentTranslator, config: settings.translators.tencent },
+      { name: 'alibaba', Class: AlibabaTranslator, config: settings.translators.alibaba },
+      { name: 'deepl', Class: DeepLTranslator, config: settings.translators.deepl },
+      { name: 'volcano', Class: VolcanoTranslator, config: settings.translators.volcano },
+      { name: 'google', Class: GoogleTranslator, config: settings.translators.google },
+    ];
+
+    for (const { name, Class, config } of translatorConfigs) {
+      if (!config?.enabled) continue;
+
+      // 验证凭证
+      if (!settingsService.validateCredentials(name, config)) {
+        continue;
+      }
+
+      // 检查是否达到月度限额
+      const isAvailable = await settingsService.isTranslatorAvailable(name);
+      if (!isAvailable) {
+        strapi.log.info(`Translator ${name} reached monthly limit`);
+        continue;
+      }
+
+      translators.push({
+        translator: new Class(config),
+        name,
+        priority: config.priority ?? 999, // 默认优先级999
+      });
     }
 
-    if (
-      settings.translators.tencent?.enabled &&
-      settingsService.validateCredentials('tencent', settings.translators.tencent)
-    ) {
-      translators.push(new TencentTranslator(settings.translators.tencent));
-    }
-
-    if (
-      settings.translators.alibaba?.enabled &&
-      settingsService.validateCredentials('alibaba', settings.translators.alibaba)
-    ) {
-      translators.push(new AlibabaTranslator(settings.translators.alibaba));
-    }
-
-    if (
-      settings.translators.deepl?.enabled &&
-      settingsService.validateCredentials('deepl', settings.translators.deepl)
-    ) {
-      translators.push(new DeepLTranslator(settings.translators.deepl));
-    }
-
-    if (
-      settings.translators.volcano?.enabled &&
-      settingsService.validateCredentials('volcano', settings.translators.volcano)
-    ) {
-      translators.push(new VolcanoTranslator(settings.translators.volcano));
-    }
-
-    if (settings.translators.google?.enabled) {
-      translators.push(new GoogleTranslator(settings.translators.google || {}));
-    }
-
-    return translators;
+    // 按优先级排序(数字越小优先级越高)
+    return translators.sort((a, b) => a.priority - b.priority);
   },
 
+  /**
+   * 负载均衡模式:随机打乱翻译器顺序
+   */
+  shuffleTranslators<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  },
 
   async testTranslator(
     translatorName: string,
@@ -169,11 +201,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     }
   },
 
-  /**
-   * 检查 slug 唯一性
-   * @param {object} params - 检查参数
-   * @returns {Promise<{isValid: boolean, message?: string}>}
-   */
   async check(params: CheckSlugParams): Promise<{ isValid: boolean; message?: string }> {
     const { id, slug, key, uid, locale } = params;
 
@@ -185,24 +212,18 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         };
       }
 
-      // 构建查询条件 - 修复类型错误
       const where: Record<string, any> = {
         [key]: slug,
       };
 
-      // 如果是更新操作，排除当前记录
       if (id) {
         where.id = { $ne: id };
       }
 
-      // 如果启用了国际化，添加 locale 条件
       if (locale) {
         where.locale = locale;
       }
 
-      console.log('Checking slug with filters:', where, 'for uid:', uid);
-
-      // 查询是否存在重复的 slug
       const existingEntry = await strapi.entityService.findMany(uid, {
         filters: where,
         limit: 1,

@@ -14,7 +14,7 @@ export default [
   {
     method: 'PUT',
     path: '/settings',
-    handler: 'settings.updateSettings',
+    handler: 'settings.setSettings',
     config: {
       policies: [],
       auth: false,
@@ -57,6 +57,24 @@ export default [
       // auth: {
       //   scope: ['plugin::enhanced-slug.slug.check'],
       // },
+    },
+  },
+  {
+    method: 'POST',
+    path: '/reset-usage/:translator',
+    handler: 'translator.resetUsage',
+    config: {
+      policies: [],
+      auth: false,
+    },
+  },
+  {
+    method: 'GET',
+    path: '/usage-stats',
+    handler: 'translator.getUsageStats',
+    config: {
+      policies: [],
+      auth: false,
     },
   },
 ];

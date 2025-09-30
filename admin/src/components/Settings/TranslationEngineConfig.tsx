@@ -9,10 +9,12 @@ import {
   Toggle,
   Alert,
   Flex,
+  NumberInput,
 } from '@strapi/design-system';
 import { useNotification } from '@strapi/strapi/admin';
 import { getTranslation } from '../../utils/getTranslation';
 import api from '../../utils/api';
+import { Field } from '@strapi/design-system';
 
 interface TranslatorConfig {
   enabled: boolean;
@@ -23,6 +25,8 @@ interface TranslatorConfig {
   apiKey?: string;
   region?: string;
   projectId?: string;
+  priority?: number;
+  monthlyCharLimit?: number;
 }
 
 interface Props {
@@ -31,6 +35,7 @@ interface Props {
   config: TranslatorConfig;
   onUpdate: (config: TranslatorConfig) => void;
   fields: string[];
+  showPriorityAndLimit?: boolean;
 }
 
 export const TranslationEngineConfig: React.FC<Props> = ({
@@ -39,13 +44,14 @@ export const TranslationEngineConfig: React.FC<Props> = ({
   config,
   onUpdate,
   fields,
+  showPriorityAndLimit = false,
 }) => {
   const { formatMessage } = useIntl();
   const { toggleNotification } = useNotification();
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const handleFieldChange = (field: string, value: string) => {
+  const handleFieldChange = (field: string, value: string | number) => {
     onUpdate({
       ...config,
       [field]: value,
@@ -88,7 +94,7 @@ export const TranslationEngineConfig: React.FC<Props> = ({
   };
 
   return (
-    <Box padding={4} background="neutral0">
+    <Box padding={4} background="neutral100" marginBottom={4} hasRadius>
       <Flex justifyContent="space-between" alignItems="center" marginBottom={4}>
         <Typography variant="beta">{title}</Typography>
 
@@ -106,19 +112,18 @@ export const TranslationEngineConfig: React.FC<Props> = ({
 
       {config.enabled && (
         <>
-          <Grid.Root gap={3}>
+          <Grid.Root gap={4} marginBottom={4}>
             {fields.map((field) => (
-              <Grid.Item col={3} gap={3}>
-                <Typography variant="pi" textColor="neutral600">
-                  {getFieldLabel(field)}
-                </Typography>
-                <Box flex={{ initial: '1 1 auto', medium: '1', large: '1 1 0' }}>
+              <Grid.Item key={field} col={6}>
+                <Field.Root>
+                  <Field.Label>
+                    {getFieldLabel(field)}
+                  </Field.Label>
                   <TextInput
-                    key={field}
                     label={getFieldLabel(field)}
                     type={
                       field.toLowerCase().includes('key') || field.toLowerCase().includes('secret')
-                        ? 'text'
+                        ? 'password'
                         : 'text'
                     }
                     value={config[field as keyof TranslatorConfig] || ''}
@@ -126,18 +131,56 @@ export const TranslationEngineConfig: React.FC<Props> = ({
                       handleFieldChange(field, e.target.value)
                     }
                   />
-                </Box>
+                  <Field.Hint />
+                </Field.Root>
               </Grid.Item>
             ))}
           </Grid.Root>
 
+          {showPriorityAndLimit && (
+            <Grid.Root gap={4} marginBottom={4}>
+              <Grid.Item col={6}>
+                <Field.Root
+                  hint={formatMessage({ id: getTranslation('translator.priority.hint') })}
+                >
+                  <Field.Label>
+                    {formatMessage({ id: getTranslation('translator.field.priority') })}
+                  </Field.Label>
+                  <NumberInput
+                    value={config.priority ?? 999}
+                    onValueChange={(value: number) => handleFieldChange('priority', value)}
+                    min={1}
+                    max={999}
+                  />
+                  <Field.Hint />
+                </Field.Root>
+              </Grid.Item>
+              <Grid.Item col={6}>
+                <Field.Root
+                  hint={formatMessage({ id: getTranslation('translator.limit.hint') })}
+                >
+                  <Field.Label>
+                    {formatMessage({ id: getTranslation('translator.field.monthlyCharLimit') })}
+                  </Field.Label>
+                  <NumberInput
+                    value={config.monthlyCharLimit ?? 0}
+                    onValueChange={(value: number) => handleFieldChange('monthlyCharLimit', value)}
+                    min={0}
+                    step={1000}
+                  />
+                  <Field.Hint />
+                </Field.Root>
+              </Grid.Item>
+            </Grid.Root>
+          )}
+
           {fields.length === 0 && (
-            <Alert variant="default" marginTop={3}>
+            <Alert variant="default" marginBottom={3}>
               {formatMessage({ id: getTranslation('translator.google.noConfig') })}
             </Alert>
           )}
 
-          <Flex gap={2} marginTop={3}>
+          <Flex gap={2}>
             <Button onClick={handleTest} loading={isTesting} variant="secondary" size="S">
               {formatMessage({ id: getTranslation('translator.test.button') })}
             </Button>
