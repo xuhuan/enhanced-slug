@@ -59,7 +59,7 @@ App Key: 你的火山引擎 Secret Access Key
 
 #### 谷歌翻译
 
-无需配置，使用免费的 google-translate-api-x 包。
+无需配置，使用免费的 google-translate-api 包。
 
 
 ## 高级配置
