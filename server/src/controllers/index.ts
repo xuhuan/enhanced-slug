@@ -1,5 +1,9 @@
-import controller from './controller';
+import settings from './settings';
+import slug from './slug';
+import translator from './translator';
 
 export default {
-  controller,
+  settings,
+  slug,
+  translator,
 };
