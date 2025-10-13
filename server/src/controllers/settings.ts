@@ -1,5 +1,3 @@
-// path: src/controllers/settings.ts
-
 import type { Core } from '@strapi/strapi';
 import { PluginSettings, TranslatorUsageStats } from '../services/settings';
 import { PLUGIN_ID } from '../../../admin/src/pluginId';
@@ -31,20 +29,16 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
   },
 
   /**
-   * 更新插件设置并返回更新后的设置（含扩展 usageStats）
+   * 更新插件设置并返回更新后的设置
    */
   async setSettings(ctx: any) {
     try {
       const settingsService = strapi.plugin(PLUGIN_ID).service('settings');
 
-      console.log(ctx.request.body);
-
       // 保存新的设置（service 会写入 store）
       const newSettings: PluginSettings = await settingsService.setSettings(ctx.request.body);
 
-      console.log(newSettings);
-
-      // 从 service 获取扩展后的 usage stats（基于最新设置）
+      // 从 service 获取扩展后的 usage stats
       const extendedUsageStats = await settingsService.getAllUsageStats();
 
       const response: Omit<PluginSettings, 'usageStats'> & {

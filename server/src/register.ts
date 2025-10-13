@@ -2,17 +2,12 @@ import type { Core } from '@strapi/strapi';
 import { PLUGIN_ID } from '../../admin/src/pluginId';
 
 const register = async ({ strapi }: { strapi: Core.Strapi }) => {
-  console.log('=== Enhanced Slug Plugin Debug ===');
-  console.log('Plugin ID:', PLUGIN_ID);
-  console.log('Strapi admin available:', !!strapi.admin);
-  console.log('Permission service available:', !!strapi.admin?.services?.permission);
 
 
   // 检查权限服务是否存在
   if (strapi.admin?.services?.permission) {
     try {
       const permissionService = strapi.admin.services.permission;
-      console.log('Available permission methods:', Object.keys(permissionService));
 
       // 定义权限动作 - 注意 uid 要和路由中的 scope 匹配
       const actions = [

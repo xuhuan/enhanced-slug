@@ -9,7 +9,7 @@ export class GoogleTranslator extends BaseTranslator {
   }
 
   validateConfig(): boolean {
-    return true; // Google Translate API doesn't require API key for google-translate-api
+    return true;
   }
 
   async translate(
@@ -18,8 +18,6 @@ export class GoogleTranslator extends BaseTranslator {
     to: string = 'en'
   ): Promise<TranslationResult> {
     try {
-      console.log('GoogleTranslator', text, from, to);
-      // Dynamic import to avoid loading the module until needed
       if (!this.translator) {
         this.translator = translate;
       }

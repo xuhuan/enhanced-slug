@@ -114,7 +114,8 @@ logs
 results
 node_modules
 .node_history
-
+package-lock.json
+pnpm-lock.yaml
 
 ############################
 # Package managers

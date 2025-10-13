@@ -26,7 +26,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     text: string,
     options?: { mode?: 'translation' | 'pinyin'; targetLang?: string }
   ): Promise<string> {
-    const settingsService = strapi.plugin('enhanced-slug').service('settings');
+    const settingsService = strapi.plugin(PLUGIN_ID).service('settings');
     const settings: PluginSettings = await settingsService.getSettings();
 
     const mode = options?.mode || settings.mode;
@@ -53,7 +53,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     targetLang: string,
     settings: PluginSettings
   ): Promise<string> {
-    const settingsService = strapi.plugin('enhanced-slug').service('settings');
+    const settingsService = strapi.plugin(PLUGIN_ID).service('settings');
     const translators = await this.getAvailableTranslators(settings);
 
     if (translators.length === 0) {
@@ -105,7 +105,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
    * 获取可用的翻译器(已排序并过滤)
    */
   async getAvailableTranslators(settings: PluginSettings): Promise<Array<{ translator: BaseTranslator; name: string; priority: number }>> {
-    const settingsService = strapi.plugin('enhanced-slug').service('settings');
+    const settingsService = strapi.plugin(PLUGIN_ID).service('settings');
     const translators: Array<{ translator: BaseTranslator; name: string; priority: number }> = [];
 
     const translatorConfigs = [

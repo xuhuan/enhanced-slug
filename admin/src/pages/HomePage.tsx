@@ -26,9 +26,9 @@ const HomePage = () => {
     setSaving(true);
     try {
       await post(`/${PLUGIN_ID}/settings`, settings);
-      toggleNotification({ type: 'success', message: '保存成功' });
+      toggleNotification({ type: 'success', message: formatMessage({ id: `${PLUGIN_ID}.settings.save.success` }) });
     } catch {
-      toggleNotification({ type: 'warning', message: '保存失败' });
+      toggleNotification({ type: 'warning', message: formatMessage({ id: `${PLUGIN_ID}.settings.save.error` }) });
     } finally {
       setSaving(false);
     }

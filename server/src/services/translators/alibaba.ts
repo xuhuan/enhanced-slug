@@ -21,8 +21,6 @@ export class AlibabaTranslator extends BaseTranslator {
       return this.client;
     }
 
-    console.log(this.config)
-
     // 使用AccessKey方式创建凭据
     const credentialsConfig = new Config({
       // 凭证类型。

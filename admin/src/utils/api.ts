@@ -48,7 +48,7 @@ const api = {
      * 发送 GET 请求
      * @param url - 相对于插件根路径的 URL (e.g., '/settings')
      * @param params - URL 查询参数
-     * @returns Promise with response data
+     * @returns
      */
     get: <T = any>(url: string, params?: object): Promise<T> => {
         return instance.get(url, { params });
@@ -58,7 +58,7 @@ const api = {
      * 发送 POST 请求
      * @param url - 相对于插件根路径的 URL
      * @param data - 请求体数据
-     * @returns Promise with response data
+     * @returns
      */
     post: <T = any>(url: string, data?: object): Promise<T> => {
         return instance.post(url, data);
@@ -68,7 +68,7 @@ const api = {
      * 发送 PUT 请求
      * @param url - 相对于插件根路径的 URL
      * @param data - 请求体数据
-     * @returns Promise with response data
+     * @returns
      */
     put: <T = any>(url: string, data?: object): Promise<T> => {
         return instance.put(url, data);
@@ -77,13 +77,12 @@ const api = {
     /**
      * 发送 DELETE 请求
      * @param url - 相对于插件根路径的 URL
-     * @returns Promise with response data
+     * @returns
      */
     del: <T = any>(url: string): Promise<T> => {
         return instance.delete(url);
     },
 
-    // 可以根据需要添加其他方法，如 patch
 };
 
 export default api;

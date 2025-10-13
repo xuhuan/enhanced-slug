@@ -1,5 +1,10 @@
 # Enhanced Slug Plugin for Strapi v5 - 使用指南
 
+调用接口对指定字段进行翻译，主要用于slug字段，方便前端url地址的生成。
+
+建议主要用于标题这类类型的字段。
+
+阿里云翻译专业版有专门的场景适合标题翻译，所以阿里云接口调用的是专业版，专业版和通用版是共享账号的免费额度。
 
 ## 配置指南
 
@@ -9,19 +14,10 @@
 2. 导航到 **设置 → Enhanced Slug**
 3. 在"翻译引擎"标签页中配置各个翻译服务的凭证
 
-#### 百度翻译配置
-
-```
-App ID: 你的百度翻译 App ID
-App Key: 你的百度翻译密钥
-```
-
-获取方式：
-1. 访问 [百度翻译开放平台](https://fanyi-api.baidu.com/)
-2. 注册并创建应用
-3. 获取 App ID 和密钥
 
 #### 腾讯翻译配置
+
+免费额度每月500万字符
 
 ```
 Secret ID: 你的腾讯云 Secret ID
@@ -37,29 +33,17 @@ Project ID: 0 (默认项目)
 
 #### 阿里云翻译配置
 
+免费额度每月100万字符
+
 ```
 App ID: 你的阿里云 AccessKey ID
 App Key: 你的阿里云 AccessKey Secret
 ```
 
-#### DeepL 配置
-
-```
-API Key: 你的 DeepL API 密钥
-```
-
-注意：免费版和专业版的 API 端点不同，插件会自动识别。
-
-#### 火山引擎配置
-
-```
-App ID: 你的火山引擎 Access Key ID
-App Key: 你的火山引擎 Secret Access Key
-```
 
 #### 谷歌翻译
 
-无需配置，使用免费的 google-translate-api 包。
+无需配置，使用免费的 @vitalets/google-translate-api 包。
 
 
 ## 高级配置
@@ -91,7 +75,6 @@ App Key: 你的火山引擎 Secret Access Key
 
 3. **TypeScript 错误**
    - 确保已安装所有 TypeScript 相关依赖
-   - 运行 `npm install @strapi/typescript-utils`
 
 ### 调试模式
 
@@ -100,18 +83,6 @@ App Key: 你的火山引擎 Secret Access Key
 ```javascript
 // server/src/services/slug.ts
 strapi.log.debug('Translator response:', result);
-```
-
-
-## 更新升级
-
-```bash
-cd src/plugins/enhanced-slug
-git pull origin main  # 如果使用 git
-npm install
-npm run build
-cd ../../..
-npm run build
 ```
 
 ## 技术支持

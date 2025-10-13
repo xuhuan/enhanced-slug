@@ -173,7 +173,6 @@ const SettingsPage: React.FC = () => {
         {formatMessage({ id: getTranslation('settings.title') })}
       </Typography>
 
-      {/* Tab Navigation */}
       <Flex gap={2} marginBottom={4} marginTop={3}>
         <Button
           variant={activeTab === 'general' ? 'primary' : 'tertiary'}
@@ -195,9 +194,8 @@ const SettingsPage: React.FC = () => {
         </Button>
       </Flex>
 
-      {/* General Settings */}
       {activeTab === 'general' && (
-        <Box background="neutral0" hasRadius padding={4}>
+        <Box background="neutral0"  borderColor="neutral200" hasRadius padding={4}>
           <Grid.Root gap={4}>
             <Grid.Item col={12}>
               <Field.Root>
@@ -283,23 +281,14 @@ const SettingsPage: React.FC = () => {
         </Box>
       )}
 
-      {/* Translators Configuration */}
       {activeTab === 'translators' && (
-        <Box padding={4} background="neutral0" hasRadius>
+        <Box padding={4} background="neutral0" borderColor="neutral200" hasRadius>
           <TranslationEngineConfig
-            title={formatMessage({ id: getTranslation('translator.baidu.title') })}
-            engineKey="baidu"
-            config={settings.translators.baidu ?? { enabled: false }}
-            onUpdate={(config) => handleTranslatorUpdate('baidu', config)}
-            fields={['appId', 'appKey']}
-            showPriorityAndLimit
-          />
-          <TranslationEngineConfig
-            title={formatMessage({ id: getTranslation('translator.tencent.title') })}
-            engineKey="tencent"
-            config={settings.translators.tencent ?? { enabled: false }}
-            onUpdate={(config) => handleTranslatorUpdate('tencent', config)}
-            fields={['secretId', 'secretKey', 'region', 'projectId']}
+            title={formatMessage({ id: getTranslation('translator.google.title') })}
+            engineKey="google"
+            config={settings.translators.google ?? { enabled: false }}
+            onUpdate={(config) => handleTranslatorUpdate('google', config)}
+            fields={[]}
             showPriorityAndLimit
           />
           <TranslationEngineConfig
@@ -311,6 +300,22 @@ const SettingsPage: React.FC = () => {
             showPriorityAndLimit
           />
           <TranslationEngineConfig
+            title={formatMessage({ id: getTranslation('translator.tencent.title') })}
+            engineKey="tencent"
+            config={settings.translators.tencent ?? { enabled: false }}
+            onUpdate={(config) => handleTranslatorUpdate('tencent', config)}
+            fields={['secretId', 'secretKey', 'region', 'projectId']}
+            showPriorityAndLimit
+          />
+          {/* <TranslationEngineConfig
+            title={formatMessage({ id: getTranslation('translator.baidu.title') })}
+            engineKey="baidu"
+            config={settings.translators.baidu ?? { enabled: false }}
+            onUpdate={(config) => handleTranslatorUpdate('baidu', config)}
+            fields={['appId', 'appKey']}
+            showPriorityAndLimit
+          /> */}
+          {/* <TranslationEngineConfig
             title={formatMessage({ id: getTranslation('translator.deepl.title') })}
             engineKey="deepl"
             config={settings.translators.deepl ?? { enabled: false }}
@@ -325,24 +330,15 @@ const SettingsPage: React.FC = () => {
             onUpdate={(config) => handleTranslatorUpdate('volcano', config)}
             fields={['appId', 'appKey']}
             showPriorityAndLimit
-          />
-          <TranslationEngineConfig
-            title={formatMessage({ id: getTranslation('translator.google.title') })}
-            engineKey="google"
-            config={settings.translators.google ?? { enabled: false }}
-            onUpdate={(config) => handleTranslatorUpdate('google', config)}
-            fields={[]}
-            showPriorityAndLimit
-          />
+          /> */}
         </Box>
       )}
 
-      {/* Usage Statistics */}
       {activeTab === 'usage' && (
-        <Box padding={4} background="neutral0" hasRadius>
+        <Box padding={4} background="neutral0" borderColor="neutral200" hasRadius>
           <Typography variant="beta" marginBottom={4}>
             {formatMessage({ id: getTranslation('usage.title') })} (
-            {settings.usageStats?.baidu?.currentMonth || new Date().toISOString().slice(0, 7)})
+            {settings.usageStats?.alibaba?.currentMonth || new Date().toISOString().slice(0, 7)})
           </Typography>
 
           {Object.entries(settings.translators).map(([name, config]) => {
@@ -352,7 +348,7 @@ const SettingsPage: React.FC = () => {
 
 
             return (
-              <Box key={name} marginBottom={4} padding={4} background="neutral100" hasRadius>
+              <Box key={name} marginBottom={4} marginTop={4} padding={4} background="neutral100" borderColor="neutral150" hasRadius>
                 <Flex justifyContent="space-between" alignItems="center" marginBottom={2}>
                   <Flex gap={2} alignItems="center">
                     <Typography variant="beta">

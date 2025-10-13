@@ -94,7 +94,7 @@ export const TranslationEngineConfig: React.FC<Props> = ({
   };
 
   return (
-    <Box padding={4} background="neutral100" marginBottom={4} hasRadius>
+    <Box padding={4} background="neutral100" borderColor="neutral150" marginBottom={4} hasRadius>
       <Flex justifyContent="space-between" alignItems="center" marginBottom={4}>
         <Typography variant="beta">{title}</Typography>
 
@@ -115,7 +115,7 @@ export const TranslationEngineConfig: React.FC<Props> = ({
           <Grid.Root gap={4} marginBottom={4}>
             {fields.map((field) => (
               <Grid.Item key={field} col={6}>
-                <Field.Root>
+                <Field.Root style={{ width: '100%' }}>
                   <Field.Label>
                     {getFieldLabel(field)}
                   </Field.Label>
@@ -123,7 +123,7 @@ export const TranslationEngineConfig: React.FC<Props> = ({
                     label={getFieldLabel(field)}
                     type={
                       field.toLowerCase().includes('key') || field.toLowerCase().includes('secret')
-                        ? 'password'
+                        ? 'text'
                         : 'text'
                     }
                     value={config[field as keyof TranslatorConfig] || ''}
@@ -141,6 +141,7 @@ export const TranslationEngineConfig: React.FC<Props> = ({
             <Grid.Root gap={4} marginBottom={4}>
               <Grid.Item col={6}>
                 <Field.Root
+                  style={{ width: '100%' }}
                   hint={formatMessage({ id: getTranslation('translator.priority.hint') })}
                 >
                   <Field.Label>
@@ -157,6 +158,7 @@ export const TranslationEngineConfig: React.FC<Props> = ({
               </Grid.Item>
               <Grid.Item col={6}>
                 <Field.Root
+                  style={{ width: '100%' }}
                   hint={formatMessage({ id: getTranslation('translator.limit.hint') })}
                 >
                   <Field.Label>

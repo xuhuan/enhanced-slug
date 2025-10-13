@@ -7,7 +7,7 @@ export class PinyinTranslator extends BaseTranslator {
     }
 
     validateConfig(): boolean {
-        return true; // Pinyin doesn't require config
+        return true;
     }
 
     async translate(text: string, from?: string, to?: string): Promise<TranslationResult> {

@@ -87,28 +87,6 @@ export default {
       Component: async () => import('./pages/App').then(m => m.App),
     });
 
-    // app.createSettingSection(
-    //   {
-    //     id: PLUGIN_ID,
-    //     intlLabel: {
-    //       id: getTranslation('plugin.name'),
-    //       defaultMessage: 'Enhanced Slug',
-    //     },
-    //   },
-    //   [
-    //     {
-    //       intlLabel: {
-    //         id: getTranslation('settings.title'),
-    //         defaultMessage: 'Settings',
-    //       },
-    //       id: 'settings',
-    //       to: `/settings/${PLUGIN_ID}`,
-    //       Component: SettingsPage,
-    //       permissions: [],
-    //     },
-    //   ]
-    // );
-
     app.registerPlugin({
       id: PLUGIN_ID,
       initializer: Initializer,

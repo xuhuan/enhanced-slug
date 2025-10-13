@@ -120,10 +120,6 @@ const SlugInput = (props: SlugInputProps) => {
     sourceFieldRef.current = attribute?.options?.sourceField || 'title';
   }, [attribute?.options?.sourceField]);
 
-  console.log('SlugInput Props:', props);
-  console.log('contentType Props:', contentType);
-  console.log('Form values (modifiedData):', modifiedData);
-  console.log('Attribute options:', attribute?.options);
 
   const uid: string = model || '';
   const key: string = name;
@@ -131,7 +127,6 @@ const SlugInput = (props: SlugInputProps) => {
   const hasSourceField = contentType?.attributes?.hasOwnProperty(sourceField);
   const isI18nEnabled: boolean =
     contentType?.attributes?.[name]?.pluginOptions?.i18n?.localized || false;
-  console.log('SlugInput Props isI18nEnabled:', isI18nEnabled);
 
   // 只有在启用了 i18n 时才追加语言后缀
   const ensureLocaleInSlug = (slug: string) => {
@@ -227,7 +222,6 @@ const SlugInput = (props: SlugInputProps) => {
 
   // 将 generateSlug 逻辑提取为独立函数，减少依赖
   const performSlugGeneration = async (sourceValue: string, isManual: boolean = false) => {
-    console.log('Generating slug from:', sourceFieldRef.current, '=', sourceValue, 'Manual:', isManual);
 
     if (!sourceValue) {
       if (isManual) {
@@ -310,17 +304,8 @@ const SlugInput = (props: SlugInputProps) => {
     const sourceValue = modifiedData?.[sourceField];
     const initialSourceValue = initialValues?.[sourceField];
 
-    console.log('Source value changed:', {
-      sourceValue,
-      initialSourceValue,
-      lastValue: lastSourceValueRef.current,
-      sourceField,
-      isManuallyEdited
-    });
-
     // 如果用户手动编辑过，不自动生成
     if (isManuallyEdited) {
-      console.log('Skipping auto-generation: manually edited');
       return;
     }
 
@@ -332,7 +317,6 @@ const SlugInput = (props: SlugInputProps) => {
       sourceValue !== initialSourceValue &&
       sourceValue.trim() !== lastSourceValueRef.current
     ) {
-      console.log('Triggering debounced auto-generation for:', sourceValue);
       debouncedGenerateSlug(sourceValue);
     }
   }, [modifiedData?.[sourceField], sourceField, initialValues?.[sourceField], debouncedGenerateSlug, isManuallyEdited]);

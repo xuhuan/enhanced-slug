@@ -10,7 +10,6 @@ export type TranslatorCredentials = {
     apiKey?: string;
     region?: string;
     projectId?: string;
-    // 新增字段
     priority?: number; // 优先级,数字越小优先级越高
     monthlyCharLimit?: number; // 每月字符使用限额,0表示无限制
 };
@@ -35,7 +34,6 @@ export type PluginSettings = {
     };
     defaultTargetLanguage: string;
     autoSwitchOnFailure: boolean;
-    // 新增字段
     usageMode: UsageMode; // 使用模式
     usageStats: {
         baidu?: TranslatorUsageStats;
@@ -64,7 +62,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
      * 获取设置，并与默认值合并，确保返回完整的配置对象
      */
     async getSettings(): Promise<PluginSettings> {
-        // 步骤 1: 使用稳定可靠的 strapi.store()
         const storedSettings = await this.getStore().get({ key: 'settings' });
         return this.withDefaults(storedSettings || {});
     },
@@ -87,7 +84,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     async setSettings(settings: Partial<PluginSettings>): Promise<PluginSettings> {
         const currentSettings = await this.getSettings();
 
-        // 步骤 3: 执行深度合并，防止内嵌对象被整个覆盖
         const newSettings: PluginSettings = {
             ...currentSettings,
             ...settings, // 应用顶层更新
@@ -108,7 +104,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     withDefaults(settings: Partial<PluginSettings>): PluginSettings {
         const currentMonth = this.getCurrentMonth();
 
-        // Ensure usageStats exists with proper structure
         const usageStats = settings.usageStats || {};
 
         return {
