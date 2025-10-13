@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "keywords": [
     "strapi",
     "plugin",
@@ -56,7 +56,6 @@
     "baidu-translate-api": "^0.4.3",
     "crypto-js": "^4.2.0",
     "deepl-node": "^1.19.1",
-    "enhanced-slug": "link:.yalc/enhanced-slug",
     "pinyin-pro": "^3.27.0",
     "react-intl": "^7.1.11",
     "tencentcloud-sdk-nodejs": "^4.1.118",
