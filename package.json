@@ -1,5 +1,5 @@
 {
-  "version": "1.0.4",
+  "version": "1.0.5",
   "keywords": [
     "strapi",
     "plugin",
@@ -36,8 +36,7 @@
     "dist",
     "package.json",
     "README.md",
-    "LICENSE",
-    "doc"
+    "LICENSE"
   ],
   "scripts": {
     "build": "strapi-plugin build",

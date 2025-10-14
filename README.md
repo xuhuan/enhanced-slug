@@ -95,12 +95,12 @@ strapi.log.debug('Translator response:', result);
 
 可以关注我的公众号支持一下。
 
-<img src=./doc/images/fifthtimezone.jpg width=200/>
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/fifthtimezone.jpg width=200/>
  
 
 也可以加我的微信好友。
 
-<img src=./doc/images/wechat.png width=200/>
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/wechat.png width=200/>
 
 
 没错，作者是旅行社的，你们要是愿意找我报团我也是不会拒绝的~
