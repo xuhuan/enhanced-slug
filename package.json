@@ -1,5 +1,5 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "keywords": [
     "strapi",
     "plugin",
@@ -33,7 +33,10 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "strapi-plugin build",
@@ -41,7 +44,8 @@
     "watch:link": "strapi-plugin watch:link",
     "verify": "strapi-plugin verify",
     "test:ts:front": "run -T tsc -p admin/tsconfig.json",
-    "test:ts:back": "run -T tsc -p server/tsconfig.json"
+    "test:ts:back": "run -T tsc -p server/tsconfig.json",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@alicloud/alimt20181012": "^1.4.1",
@@ -86,6 +90,9 @@
     "name": "enhanced-slug",
     "displayName": "enhanced-slug",
     "description": "strapi enhanced slug"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "name": "enhanced-slug",
   "description": "strapi enhanced slug",

@@ -97,7 +97,6 @@ strapi.log.debug('Translator response:', result);
 
 <img src=./doc/images/fifthtimezone.jpg width=200/>
  
----
 
 也可以加我的微信好友。
 
