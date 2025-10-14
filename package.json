@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "keywords": [
     "strapi",
     "plugin",
@@ -58,7 +58,6 @@
     "deepl-node": "^1.19.1",
     "pinyin-pro": "^3.27.0",
     "react-intl": "^7.1.11",
-    "tencentcloud-sdk-nodejs": "^4.1.118",
     "tencentcloud-sdk-nodejs-tmt": "^4.1.117"
   },
   "devDependencies": {
