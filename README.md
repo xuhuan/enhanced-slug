@@ -91,6 +91,21 @@ strapi.log.debug('Translator response:', result);
 - 功能建议：提交 Pull Request
 - 文档改进：欢迎贡献
 
+## 联系支持作者
+
+可以关注我的公众号支持一下。
+
+<img src=./doc/images/fifthtimezone.jpg width=200/>
+ 
+---
+
+也可以加我的微信好友。
+
+<img src=./doc/images/wechat.png width=200/>
+
+
+没错，作者是旅行社的，你们要是愿意找我报团我也是不会拒绝的~
+
 ## 许可证
 
 MIT License
