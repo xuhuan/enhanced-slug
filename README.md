@@ -6,6 +6,20 @@
 
 阿里云翻译专业版有专门的场景适合标题翻译，所以阿里云接口调用的是专业版，专业版和通用版是共享账号的免费额度。
 
+## 功能列表
+- 支持翻译和拼音模式
+- 翻译接口支持多渠道的优先级模式和负载均衡模式
+- 翻译接口失败可以选用拼音兜底
+- 翻译接口可以设置优先级，可以按月设置字符限额
+- 支持统计接口字符使用量，以及手动重置使用量
+- 界面支持中英双语
+
+## 配置界面
+
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/setting.png width=800/>
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/setting2.png width=800/>
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/setting3.png width=800/>
+
 ## 配置指南
 
 ### 配置翻译引擎
