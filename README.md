@@ -1,4 +1,4 @@
-# Enhanced Slug Plugin for Strapi v5 - 使用指南
+# Enhanced Slug Plugin for Strapi v5
 
 调用接口对指定字段进行翻译，主要用于slug字段，方便前端url地址的生成。
 
