@@ -1,5 +1,5 @@
 {
-  "version": "1.0.6",
+  "version": "1.0.7",
   "keywords": [
     "strapi",
     "plugin",
@@ -52,34 +52,34 @@
     "@alicloud/credentials": "^2.4.4",
     "@alicloud/openapi-core": "^1.0.5",
     "@darabonba/typescript": "^1.0.3",
-    "@strapi/design-system": "^2.0.0-rc.29",
-    "@strapi/icons": "^2.0.0-rc.29",
+    "@strapi/design-system": "^2.0.0-rc.30",
+    "@strapi/icons": "^2.0.0-rc.30",
     "@vitalets/google-translate-api": "^9.2.1",
     "@volcengine/openapi": "^1.32.0",
     "axios": "^1.12.2",
     "baidu-translate-api": "^0.4.3",
     "crypto-js": "^4.2.0",
-    "deepl-node": "^1.19.1",
+    "deepl-node": "^1.20.0",
     "pinyin-pro": "^3.27.0",
-    "react-intl": "^7.1.11",
+    "react-intl": "^7.1.14",
     "tencentcloud-sdk-nodejs-tmt": "^4.1.117"
   },
   "devDependencies": {
     "@strapi/sdk-plugin": "^5.3.2",
-    "@strapi/strapi": "^5.23.6",
-    "@strapi/typescript-utils": "^5.23.6",
-    "@types/react": "^19.1.13",
-    "@types/react-dom": "^19.1.9",
+    "@strapi/strapi": "^5.28.0",
+    "@strapi/typescript-utils": "^5.28.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "prettier": "^3.6.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1",
     "styled-components": "^6.1.19",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@strapi/sdk-plugin": "^5.3.2",
-    "@strapi/strapi": "^5.23.6",
+    "@strapi/strapi": "^5.28.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1",
@@ -97,5 +97,11 @@
   "name": "enhanced-slug",
   "description": "strapi enhanced slug",
   "license": "MIT",
-  "author": "zhongjingjing <zhongjingjing@gmail.com>"
+  "author": "zhongjingjing <zhongjingjing@gmail.com>",
+  "repository": "xuhuan/enhanced-slug",
+  "bugs": {
+    "url": "https://github.com/xuhuan/enhanced-slug/issues"
+  },
+  "homepage": "https://github.com/xuhuan/enhanced-slug",
+  "funding": "https://github.com/xuhuan/enhanced-slug?tab=readme-ov-file#%E8%81%94%E7%B3%BB%E6%94%AF%E6%8C%81%E4%BD%9C%E8%80%85"
 }
