@@ -98,7 +98,10 @@
   "description": "strapi enhanced slug",
   "license": "MIT",
   "author": "zhongjingjing <zhongjingjing@gmail.com>",
-  "repository": "xuhuan/enhanced-slug",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xuhuan/enhanced-slug.git"
+  },
   "bugs": {
     "url": "https://github.com/xuhuan/enhanced-slug/issues"
   },
