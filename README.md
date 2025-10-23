@@ -1,5 +1,155 @@
 # Enhanced Slug Plugin for Strapi v5
 
+The interface is used to translate specified fields, primarily for the slug field, to facilitate the generation of frontend URLs.
+
+The suggestion is primarily intended for fields such as titles.
+
+Aliyun's Professional Translation Edition offers specialized scenarios suitable for title translation, so the API call utilizes the Professional Edition. Both the Professional and General Editions share the same free quota under the same account.
+
+## Feature List
+- Supports translation and pinyin modes
+- The translation interface supports priority modes and load balancing modes for multiple channels
+- If the translation interface fails, you can fall back to using pinyin
+- The translation interface allows setting priorities and can be configured with monthly character limits
+- Supports tracking character usage via the interface and manual reset of usage
+- The interface supports bilingual Chinese-English
+
+## Installation method
+
+Simply install the plugin
+
+```
+npm i enhanced-slug
+```
+
+```
+pnpm i enhanced-slug
+```
+
+```
+yarn add enhanced-slug
+```
+
+## Usage method
+
+This is a component, choose custom component when adding it
+
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use-en.png width=800/>
+
+Below is the input box effect and usage effect. When the content of the associated field changes, it will automatically trigger the generation. You can also manually click the button to trigger the generation, or modify the final slug component content yourself.
+
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use-en2.png width=800/>
+
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use-en3.png width=800/>
+
+## Configuration Interface
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/setting-en.png width=800/>
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/setting-en2.png width=800/>
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/setting-en3.png width=800/>
+
+## Configuration Guide
+
+### Configuring the Translation Engine
+
+1. Access the Strapi admin panel.
+2. Navigate to **Settings → Enhanced Slug**
+3. Configure the credentials for each translation service in the "Translation Engine" tab.
+
+
+#### Configuring Tencent Translation
+
+Free quota: 5 million characters per month
+
+```
+Secret ID: Your Tencent Cloud Secret ID
+Secret Key: Your Tencent Cloud Secret Key
+Region: ap-beijing (or other region)
+Project ID: 0 (default project)
+```
+
+How to obtain:
+1. Visit the [Tencent Cloud Console](https://console.cloud.tencent.com/)
+2. Activate the machine translation service
+3. Create a key in Access Management
+
+#### Configuring Alibaba Cloud Translation
+
+Free quota: 1 million characters per month
+
+```
+App ID: Your Alibaba Cloud AccessKey ID
+App Key: Your Alibaba Cloud AccessKey Secret
+```
+
+#### Google Translate
+
+No configuration required, uses the free @vitalets/google-translate-api package.
+
+
+### Advanced Configuration
+
+### Automatically Switch on Failure
+
+Enabling the "Automatically Switch on Failure" option automatically generates a slug using Pinyin mode when all translation engines fail.
+### Priority Settings
+
+Translation engines are used in the order they are enabled in the settings page:
+1. The first enabled engine takes precedence.
+2. If it fails, the next enabled engine is tried.
+3. If all engines fail, Pinyin is used (if automatic switching is enabled).
+
+## Troubleshooting
+
+### Common Problems
+
+1. **Translation Failure**
+- Check that the API credentials are correct.
+- Use the "Test Connection" function to verify the configuration.
+- Check network connectivity.
+- Verify that the API quota is sufficient.
+
+2. **Chinese to Pinyin Conversion Error**
+- Ensure the pinyin-pro package is installed.
+- Check that the text encoding is UTF-8.
+
+3. **TypeScript Error**
+- Ensure all TypeScript dependencies are installed.
+
+### Debug Mode
+
+In the development environment, you can view detailed logs:
+
+
+```javascript
+// server/src/services/slug.ts
+strapi.log.debug('Translator response:', result);
+```
+## Technical Support
+
+- Report Issues: Create an Issue
+- Feature Suggestions: Submit a Pull Request
+- Documentation Improvements: Contributions are welcome
+
+## Contact And Support Author
+
+You can follow my WeChat official account for support.
+
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/fifthtimezone.jpg width=200/>
+
+You can also add me as your WeChat friend.
+
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/wechat.png width=200/>
+
+Yes, I work for a travel agency. If you'd like to book a tour with me, I wouldn't refuse.
+
+## License
+
+MIT License
+
+
+
+# 中文介绍
+
 调用接口对指定字段进行翻译，主要用于slug字段，方便前端url地址的生成。
 
 建议主要用于标题这类类型的字段。
@@ -13,6 +163,32 @@
 - 翻译接口可以设置优先级，可以按月设置字符限额
 - 支持统计接口字符使用量，以及手动重置使用量
 - 界面支持中英双语
+
+## 安装方法
+
+安装插件即可
+
+```
+npm i enhanced-slug
+```
+```
+pnpm i enhanced-slug
+```
+```
+yarn add enhanced-slug
+```
+
+## 使用方法
+
+这个是组件，添加的时候选择自定义组件
+
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use-en.png width=800/>
+
+下面是输入框效果和使用效果，关联字段内容变更后会自动触发生成，也可以手动点击按钮触发生成，或者自行修改最终的slug组件内容。
+
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use-en2.png width=800/>
+
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use-en3.png width=800/>
 
 ## 配置界面
 
@@ -105,12 +281,12 @@ strapi.log.debug('Translator response:', result);
 - 功能建议：提交 Pull Request
 - 文档改进：欢迎贡献
 
-## 联系支持作者
+## 联系并支持作者
 
-可以关注我的公众号支持一下。
+可以关注我的微信公众号支持一下。
 
 <img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/fifthtimezone.jpg width=200/>
- 
+
 
 也可以加我的微信好友。
 
