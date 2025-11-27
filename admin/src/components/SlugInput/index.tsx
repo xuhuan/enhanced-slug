@@ -2,11 +2,26 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { ArrowClockwise, Earth } from '@strapi/icons';
 import { useLocation } from 'react-router-dom';
-import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin';
-import { getFetchClient } from '@strapi/strapi/admin';
+import { unstable_useContentManagerContext as useContentManagerContext, useFetchClient } from '@strapi/strapi/admin';
 import { Field } from '@strapi/design-system';
+import { useIntl } from 'react-intl'; // 引入 useIntl
 import { PLUGIN_ID } from '../../pluginId';
+import { getTranslation } from '../../utils/getTranslation'; // 引入 getTranslation
 import { slugify } from '../../../../server/src/utils/slug';
+
+// --- 常量定义 ---
+const CONSTANTS = {
+  DEBOUNCE_DELAY: 1500,
+  SUCCESS_MSG_DELAY: 3000,
+  RETRY_DELAY: 100,
+  COLORS: {
+    WARNING: '#f29d41',
+    SUCCESS: '#008000',
+    PRIMARY: '#4945ff',
+    NEUTRAL: '#666',
+    WHITE: '#ffffff',
+  }
+};
 
 // 定义类型接口
 interface SlugInputProps {
@@ -56,7 +71,6 @@ const useDebounce = <T extends any[]>(callback: (...args: T) => void, delay: num
   const callbackRef = useRef(callback);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 始终保存最新的 callback，但不作为依赖项
   callbackRef.current = callback;
 
   const debouncedCallback = useCallback(
@@ -68,14 +82,8 @@ const useDebounce = <T extends any[]>(callback: (...args: T) => void, delay: num
         callbackRef.current(...args);
       }, delay);
     },
-    [delay] // 只依赖 delay
+    [delay]
   );
-
-  const cancel = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -85,14 +93,16 @@ const useDebounce = <T extends any[]>(callback: (...args: T) => void, delay: num
     };
   }, []);
 
-  return { debouncedCallback, cancel };
+  return { debouncedCallback };
 };
 
 const SlugInput = (props: SlugInputProps) => {
   const { name, label, value, attribute, onChange } = props;
+  const { formatMessage } = useIntl(); // 获取 formatMessage
 
   const context = useContentManagerContext() as ContentManagerContext;
   const { id, contentType, model, form } = context;
+  const { get, post } = useFetchClient();
 
   const initialValues = form?.initialValues || {};
   const modifiedData = form?.values || {};
@@ -106,7 +116,8 @@ const SlugInput = (props: SlugInputProps) => {
   const [isAutoGenerating, setIsAutoGenerating] = useState<boolean>(false);
   const [isManuallyEdited, setIsManuallyEdited] = useState<boolean>(false);
 
-  // 使用 ref 存储需要在防抖函数中使用的值
+  const [alwaysAppendSuffix, setAlwaysAppendSuffix] = useState<boolean>(true);
+
   const lastSourceValueRef = useRef<string>('');
   const contextRef = useRef({ id, model, currentLocale, attribute, onChange, name });
   const sourceFieldRef = useRef<string>(attribute?.options?.sourceField || 'title');
@@ -120,6 +131,20 @@ const SlugInput = (props: SlugInputProps) => {
     sourceFieldRef.current = attribute?.options?.sourceField || 'title';
   }, [attribute?.options?.sourceField]);
 
+  // 获取插件全局设置
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data } = await get(`/${PLUGIN_ID}/settings`);
+        if (data && typeof data.alwaysAppendLocaleSuffix !== 'undefined') {
+          setAlwaysAppendSuffix(data.alwaysAppendLocaleSuffix);
+        }
+      } catch (err) {
+        console.error('Failed to fetch plugin settings', err);
+      }
+    };
+    fetchSettings();
+  }, [get]);
 
   const uid: string = model || '';
   const key: string = name;
@@ -128,10 +153,11 @@ const SlugInput = (props: SlugInputProps) => {
   const isI18nEnabled: boolean =
     contentType?.attributes?.[name]?.pluginOptions?.i18n?.localized || false;
 
-  // 只有在启用了 i18n 时才追加语言后缀
-  const ensureLocaleInSlug = (slug: string) => {
-    if (isI18nEnabled && currentLocale && !slug.endsWith(`-${currentLocale}`)) {
-      return `${slug}-${currentLocale}`;
+  const ensureLocaleInSlug = (slug: string, force: boolean = false) => {
+    if (isI18nEnabled && currentLocale) {
+      if ((alwaysAppendSuffix || force) && !slug.endsWith(`-${currentLocale}`)) {
+        return `${slug}-${currentLocale}`;
+      }
     }
     return slug;
   };
@@ -139,13 +165,13 @@ const SlugInput = (props: SlugInputProps) => {
   useEffect(() => {
     if (!hasSourceField) {
       setError(
-        `Source field '${sourceField}' not found. Please configure the source field in the field options.`
+        formatMessage({ id: getTranslation('input.error.sourceMissing') }, { source: sourceField })
       );
       setIsValid(false);
     } else {
       setError(null);
     }
-  }, [hasSourceField, sourceField]);
+  }, [hasSourceField, sourceField, formatMessage]);
 
   const location = useLocation();
   useEffect(() => {
@@ -154,14 +180,11 @@ const SlugInput = (props: SlugInputProps) => {
     setCurrentLocale(locale || '');
   }, [location]);
 
-  const validateSlug = async (slug: string) => {
-    const { post } = getFetchClient();
-    setIsLoading(true);
-
+  const checkSlugApi = async (slugToCheck: string): Promise<{ isValid: boolean; message?: string }> => {
     try {
       const response = await post(`/${PLUGIN_ID}/check-slug`, {
         id,
-        slug,
+        slug: slugToCheck,
         key,
         uid,
         currentLocale,
@@ -171,73 +194,75 @@ const SlugInput = (props: SlugInputProps) => {
       const data = response?.data;
       const result = data?.result || data?.data?.result;
 
-      if (!result) {
-        throw new Error('Invalid response format');
-      }
+      if (!result) throw new Error('Invalid response format');
 
-      const { isValid: slugIsValid, message } = result;
-      setIsLoading(false);
-
-      if (!slugIsValid) {
-        setError(message || 'Slug is not valid');
-        setIsValid(false);
-        setReGenerate(true);
-        return false;
-      }
-
-      setError(null);
-      setIsValid(true);
-      setReGenerate(false);
-      return true;
+      return {
+        isValid: result.isValid,
+        message: result.message
+      };
     } catch (error) {
-      console.error('Validation error:', error);
-      setError('An error occurred while validating the slug.');
-      setIsLoading(false);
+      console.error('Check API error:', error);
+      return { isValid: false, message: formatMessage({ id: getTranslation('input.error.checkFailed') }) };
+    }
+  };
+
+  const validateSlug = async (slug: string) => {
+    setIsLoading(true);
+
+    const { isValid: slugIsValid, message } = await checkSlugApi(slug);
+
+    setIsLoading(false);
+
+    if (!slugIsValid) {
+      setError(message || formatMessage({ id: getTranslation('input.error.invalid') }));
+      setIsValid(false);
+      setReGenerate(true);
       return false;
     }
+
+    setError(null);
+    setIsValid(true);
+    setReGenerate(false);
+    return true;
   };
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputSlug(newValue);
     setIsValid(null);
-    setIsManuallyEdited(true); // 标记为手动编辑
+    setIsManuallyEdited(true);
 
     if (!newValue?.trim() && attribute?.required) {
-      setError('Slug cannot be empty');
+      setError(formatMessage({ id: getTranslation('input.error.empty') }));
       setIsValid(false);
       setInputSlug('');
       onChange?.({ target: { name, value: '' } });
       return;
     }
 
-    // 验证时使用完整的 slug（包含语言后缀）
     const fullSlug = ensureLocaleInSlug(newValue);
     const isValidSlug = await validateSlug(fullSlug);
     if (isValidSlug) {
       onChange?.({ target: { name, value: fullSlug } });
-      setTimeout(() => setIsValid(null), 3000);
+      setTimeout(() => setIsValid(null), CONSTANTS.SUCCESS_MSG_DELAY);
     }
   };
 
-  // 将 generateSlug 逻辑提取为独立函数，减少依赖
   const performSlugGeneration = async (sourceValue: string, isManual: boolean = false) => {
-
     if (!sourceValue) {
       if (isManual) {
-        setError(`No content in "${sourceFieldRef.current}" field to generate slug from`);
+        setError(formatMessage({ id: getTranslation('input.error.noContent') }, { source: sourceFieldRef.current }));
       }
       return;
     }
 
     if (typeof sourceValue !== 'string' || !sourceValue.trim()) {
       if (isManual) {
-        setError(`Source field "${sourceFieldRef.current}" must be a non-empty string`);
+        setError(formatMessage({ id: getTranslation('input.error.mustString') }, { source: sourceFieldRef.current }));
       }
       return;
     }
 
-    // 如果是自动生成且值没有真正改变，则跳过
     if (!isManual && lastSourceValueRef.current === sourceValue.trim()) {
       return;
     }
@@ -248,7 +273,6 @@ const SlugInput = (props: SlugInputProps) => {
     }
 
     try {
-      const { post } = getFetchClient();
       const currentContext = contextRef.current;
 
       const response = await post(`/${PLUGIN_ID}/generate`, {
@@ -258,10 +282,20 @@ const SlugInput = (props: SlugInputProps) => {
       });
 
       if (response?.data?.data?.slug) {
-        const generatedSlug = response.data.data.slug;
-        const finalSlug = ensureLocaleInSlug(generatedSlug);
+        const baseSlug = response.data.data.slug;
+        let finalSlug = baseSlug;
 
-        // 在输入框中也显示完整的 slug（包含语言后缀）
+        if (isI18nEnabled && currentLocale) {
+          if (alwaysAppendSuffix) {
+            finalSlug = ensureLocaleInSlug(baseSlug, true);
+          } else {
+            const { isValid } = await checkSlugApi(baseSlug);
+            finalSlug = isValid ? baseSlug : ensureLocaleInSlug(baseSlug, true);
+          }
+        } else {
+          finalSlug = baseSlug;
+        }
+
         setInputSlug(finalSlug);
         currentContext.onChange?.({ target: { name: currentContext.name, value: finalSlug } });
 
@@ -274,10 +308,11 @@ const SlugInput = (props: SlugInputProps) => {
       console.error('Error generating slug:', error);
 
       if (isManual) {
-        setError('Failed to generate slug from service. Falling back to local generation.');
+        setError(formatMessage({ id: getTranslation('input.error.generateFailed') }));
 
         const localSlug = slugify(sourceValue);
-        const finalSlug = ensureLocaleInSlug(localSlug);
+        const finalSlug = ensureLocaleInSlug(localSlug, true);
+
         setInputSlug(finalSlug);
         contextRef.current.onChange?.({ target: { name: contextRef.current.name, value: finalSlug } });
 
@@ -291,25 +326,21 @@ const SlugInput = (props: SlugInputProps) => {
     }
   };
 
-  // 优化的防抖实现 - 只依赖 delay
   const { debouncedCallback: debouncedGenerateSlug } = useDebounce(
     (sourceValue: string) => {
       performSlugGeneration(sourceValue, false);
     },
-    1500
+    CONSTANTS.DEBOUNCE_DELAY
   );
 
-  // 监听源字段变化
   useEffect(() => {
     const sourceValue = modifiedData?.[sourceField];
     const initialSourceValue = initialValues?.[sourceField];
 
-    // 如果用户手动编辑过，不自动生成
     if (isManuallyEdited) {
       return;
     }
 
-    // 只有在源字段真正改变时才触发
     if (
       sourceValue &&
       typeof sourceValue === 'string' &&
@@ -325,28 +356,42 @@ const SlugInput = (props: SlugInputProps) => {
     const sourceValue = modifiedData?.[sourceField];
     if (sourceValue) {
       setIsLoading(true);
-      setIsManuallyEdited(false); // 重新生成时重置手动编辑标记
+      setIsManuallyEdited(false);
       try {
-        const { post } = getFetchClient();
         const counter = Math.floor(Math.random() * 1000);
-        const textWithSuffix = `${sourceValue}-${counter}`;
+        const textToTranslate = `${sourceValue}`;
 
         const response = await post(`/${PLUGIN_ID}/generate`, {
-          text: textWithSuffix,
+          text: textToTranslate,
           mode: attribute?.options?.mode || 'translation',
           targetLang: attribute?.options?.targetLang || 'en',
         });
 
         if (response?.data?.data?.slug) {
-          const generatedSlug = response.data.data.slug;
-          const finalSlug = ensureLocaleInSlug(generatedSlug);
+          const baseSlug = response.data.data.slug;
+          let finalSlug = baseSlug;
+
+          if (isI18nEnabled && currentLocale) {
+            if (alwaysAppendSuffix) {
+              finalSlug = ensureLocaleInSlug(baseSlug, true);
+            } else {
+              const { isValid } = await checkSlugApi(baseSlug);
+              finalSlug = !isValid ? ensureLocaleInSlug(baseSlug, true) : baseSlug;
+            }
+          }
+
+          const finalCheck = await checkSlugApi(finalSlug);
+          if (!finalCheck.isValid) {
+            finalSlug = `${finalSlug}-${counter}`;
+          }
 
           setInputSlug(finalSlug);
           onChange?.({ target: { name, value: finalSlug } });
           await validateSlug(finalSlug);
+
         } else {
-          const localSlug = slugify(textWithSuffix);
-          const finalSlug = ensureLocaleInSlug(localSlug);
+          const localSlug = slugify(`${sourceValue}-${counter}`);
+          const finalSlug = ensureLocaleInSlug(localSlug, true);
           setInputSlug(finalSlug);
           onChange?.({ target: { name, value: finalSlug } });
           await validateSlug(finalSlug);
@@ -355,7 +400,7 @@ const SlugInput = (props: SlugInputProps) => {
         console.error('Error regenerating slug:', error);
         const counter = Math.floor(Math.random() * 1000);
         const localSlug = slugify(sourceValue + `-${counter}`);
-        const finalSlug = ensureLocaleInSlug(localSlug);
+        const finalSlug = ensureLocaleInSlug(localSlug, true);
         setInputSlug(finalSlug);
         onChange?.({ target: { name, value: finalSlug } });
         await validateSlug(finalSlug);
@@ -369,7 +414,7 @@ const SlugInput = (props: SlugInputProps) => {
   const handleManualGenerate = () => {
     const sourceValue = modifiedData?.[sourceField];
     if (sourceValue) {
-      setIsManuallyEdited(false); // 手动生成时重置手动编辑标记
+      setIsManuallyEdited(false);
       performSlugGeneration(sourceValue, true);
     }
   };
@@ -381,9 +426,11 @@ const SlugInput = (props: SlugInputProps) => {
       error={error}
       hint={
         <>
-          Slug will be generated from "{sourceField}" field using translation service
+          {formatMessage({ id: getTranslation('input.hint.description') }, { source: sourceField })}
           {isAutoGenerating && (
-            <span style={{ color: '#f29d41', marginLeft: '8px' }}>⏳ Auto-generating...</span>
+            <span style={{ color: CONSTANTS.COLORS.WARNING, marginLeft: '8px' }}>
+              ⏳ {formatMessage({ id: getTranslation('input.status.autoGenerating') })}
+            </span>
           )}
         </>
       }
@@ -412,41 +459,15 @@ const SlugInput = (props: SlugInputProps) => {
                 {isLoading ? (
                   <StyledFieldContainer>
                     <span className="loading-icon-text">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 32 32"
-                        width="1rem"
-                        height="1rem"
-                        fill="#f29d41"
-                        className="loading-icon"
-                      >
-                        <path
-                          fill="#f29d41"
-                          d="M17.5 4v4a1.5 1.5 0 1 1-3 0V4a1.5 1.5 0 1 1 3 0m4.156 7.844a1.5 1.5 0 0 0 1.062-.44l2.828-2.829a1.503 1.503 0 1 0-2.125-2.125l-2.825 2.833a1.5 1.5 0 0 0 1.06 2.56M28 14.5h-4a1.5 1.5 0 1 0 0 3h4a1.5 1.5 0 1 0 0-3m-5.282 6.096a1.501 1.501 0 0 0-2.451 1.638c.075.182.186.348.326.487l2.828 2.829a1.503 1.503 0 0 0 2.125-2.125zM16 22.5a1.5 1.5 0 0 0-1.5 1.5v4a1.5 1.5 0 1 0 3 0v-4a1.5 1.5 0 0 0-1.5-1.5m-6.717-1.904-2.83 2.829A1.503 1.503 0 0 0 8.58 25.55l2.829-2.829a1.503 1.503 0 0 0-2.125-2.125M9.5 16A1.5 1.5 0 0 0 8 14.5H4a1.5 1.5 0 1 0 0 3h4A1.5 1.5 0 0 0 9.5 16m-.925-9.546A1.503 1.503 0 0 0 6.45 8.579l2.833 2.825a1.503 1.503 0 0 0 2.125-2.125z"
-                        />
-                      </svg>
-                      Generating...
+                      <LoadingIcon />
+                      {formatMessage({ id: getTranslation('input.status.generating') })}
                     </span>
                   </StyledFieldContainer>
                 ) : isValid ? (
                   <StyledFieldContainer>
                     <span className="available-icon-text">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="1rem"
-                        height="1rem"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        className="available-icon"
-                      >
-                        <path
-                          fill="#008000"
-                          fillRule="evenodd"
-                          d="M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12Zm-1.438-11.066L16.158 7.5 18 9.245l-7.438 7.18-4.462-4.1 1.84-1.745 2.622 2.354Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Available
+                      <SuccessIcon />
+                      {formatMessage({ id: getTranslation('input.status.available') })}
                     </span>
                   </StyledFieldContainer>
                 ) : (
@@ -467,8 +488,8 @@ const SlugInput = (props: SlugInputProps) => {
           disabled={isLoading}
           style={{
             padding: '8px 12px',
-            backgroundColor: '#4945ff',
-            color: 'white',
+            backgroundColor: CONSTANTS.COLORS.PRIMARY,
+            color: CONSTANTS.COLORS.WHITE,
             border: 'none',
             borderRadius: '4px',
             cursor: isLoading ? 'not-allowed' : 'pointer',
@@ -476,14 +497,16 @@ const SlugInput = (props: SlugInputProps) => {
             whiteSpace: 'nowrap',
           }}
         >
-          {isLoading ? 'Generating...' : 'Generate'}
+          {formatMessage({ id: getTranslation('input.button.generate') })}
         </button>
       </div>
 
       <Field.Hint>
-        Source: "{sourceField}" | Auto-generation delay: 1.5s | Mode:{' '}
-        {attribute?.options?.mode || 'translation'}
-        {isI18nEnabled && currentLocale && ` | i18n: enabled (${currentLocale})`}
+        {formatMessage(
+          { id: getTranslation('input.hint.details') },
+          { delay: CONSTANTS.DEBOUNCE_DELAY, mode: attribute?.options?.mode || 'translation' }
+        )}
+        {isI18nEnabled && currentLocale && ` | ${formatMessage({ id: getTranslation('input.hint.i18n') }, { locale: currentLocale })}`}
       </Field.Hint>
       {error && <Field.Error>{error}</Field.Error>}
     </Field.Root>
@@ -492,16 +515,51 @@ const SlugInput = (props: SlugInputProps) => {
 
 export default SlugInput;
 
+// --- Sub Components (Icons) ---
+const LoadingIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 32 32"
+    width="1rem"
+    height="1rem"
+    fill={CONSTANTS.COLORS.WARNING}
+    className="loading-icon"
+  >
+    <path
+      fill={CONSTANTS.COLORS.WARNING}
+      d="M17.5 4v4a1.5 1.5 0 1 1-3 0V4a1.5 1.5 0 1 1 3 0m4.156 7.844a1.5 1.5 0 0 0 1.062-.44l2.828-2.829a1.503 1.503 0 1 0-2.125-2.125l-2.825 2.833a1.5 1.5 0 0 0 1.06 2.56M28 14.5h-4a1.5 1.5 0 1 0 0 3h4a1.5 1.5 0 1 0 0-3m-5.282 6.096a1.501 1.501 0 0 0-2.451 1.638c.075.182.186.348.326.487l2.828 2.829a1.503 1.503 0 0 0 2.125-2.125zM16 22.5a1.5 1.5 0 0 0-1.5 1.5v4a1.5 1.5 0 1 0 3 0v-4a1.5 1.5 0 0 0-1.5-1.5m-6.717-1.904-2.83 2.829A1.503 1.503 0 0 0 8.58 25.55l2.829-2.829a1.503 1.503 0 0 0-2.125-2.125M9.5 16A1.5 1.5 0 0 0 8 14.5H4a1.5 1.5 0 1 0 0 3h4A1.5 1.5 0 0 0 9.5 16m-.925-9.546A1.503 1.503 0 0 0 6.45 8.579l2.833 2.825a1.503 1.503 0 0 0 2.125-2.125z"
+    />
+  </svg>
+);
+
+const SuccessIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="1rem"
+    height="1rem"
+    fill="none"
+    viewBox="0 0 24 24"
+    className="available-icon"
+  >
+    <path
+      fill={CONSTANTS.COLORS.SUCCESS}
+      fillRule="evenodd"
+      d="M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12Zm-1.438-11.066L16.158 7.5 18 9.245l-7.438 7.18-4.462-4.1 1.84-1.745 2.622 2.354Z"
+      clipRule="evenodd"
+    />
+  </svg>
+);
+
 const StyledFieldContainer = styled.div<{ theme?: Theme }>`
   svg {
     height: 1rem;
     width: 1rem;
     path {
-      fill: ${({ theme }) => theme?.colors?.neutral400 || '#666'};
+      fill: ${({ theme }) => theme?.colors?.neutral400 || CONSTANTS.COLORS.NEUTRAL};
     }
   }
   &:hover svg path {
-    fill: ${({ theme }) => theme?.colors?.primary600 || '#4945ff'};
+    fill: ${({ theme }) => theme?.colors?.primary600 || CONSTANTS.COLORS.PRIMARY};
   }
 
   span {
@@ -516,24 +574,24 @@ const StyledFieldContainer = styled.div<{ theme?: Theme }>`
   .i18n-icon {
     svg {
       path:first-of-type {
-        fill: ${({ theme }) => theme?.colors?.warning500 || '#f29d41'};
+        fill: ${({ theme }) => theme?.colors?.warning500 || CONSTANTS.COLORS.WARNING};
       }
       path:last-of-type {
-        fill: ${({ theme }) => theme?.colors?.warning500 || '#f29d41'};
+        fill: ${({ theme }) => theme?.colors?.warning500 || CONSTANTS.COLORS.WARNING};
       }
     }
   }
 
   .loading-icon {
     path {
-      fill: ${({ theme }) => theme?.colors?.warning500 || '#f29d41'};
+      fill: ${({ theme }) => theme?.colors?.warning500 || CONSTANTS.COLORS.WARNING};
     }
-    animation: fadeInOut 3s ease-in-out;
+    animation: spin 1s linear infinite;
   }
 
   .available-icon {
     path {
-      fill: ${({ theme }) => theme?.colors?.success500 || '#008000'};
+      fill: ${({ theme }) => theme?.colors?.success500 || CONSTANTS.COLORS.SUCCESS};
     }
   }
 
@@ -542,24 +600,17 @@ const StyledFieldContainer = styled.div<{ theme?: Theme }>`
     display: flex;
     align-items: center;
     gap: 0.2rem;
-    color: ${({ theme }) => theme?.colors?.warning500 || '#f29d41'};
+    color: ${({ theme }) => theme?.colors?.warning500 || CONSTANTS.COLORS.WARNING};
   }
 
   .available-icon-text {
     animation: fadeInOut 3s ease-in-out;
-    color: ${({ theme }) => theme?.colors?.success500 || '#008000'};
+    color: ${({ theme }) => theme?.colors?.success500 || CONSTANTS.COLORS.SUCCESS};
   }
 
   .loading-icon-text {
     animation: fadeInOut 3s ease-in-out;
-    color: ${({ theme }) => theme?.colors?.warning500 || '#f29d41'};
-  }
-
-  .loading-icon {
-    path {
-      fill: ${({ theme }) => theme?.colors?.warning500 || '#f29d41'};
-    }
-    animation: spin 1s linear infinite;
+    color: ${({ theme }) => theme?.colors?.warning500 || CONSTANTS.COLORS.WARNING};
   }
 
   @keyframes fadeInOut {

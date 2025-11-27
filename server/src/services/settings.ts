@@ -34,6 +34,7 @@ export type PluginSettings = {
     };
     defaultTargetLanguage: string;
     autoSwitchOnFailure: boolean;
+    alwaysAppendLocaleSuffix: boolean;
     usageMode: UsageMode; // 使用模式
     usageStats: {
         baidu?: TranslatorUsageStats;
@@ -111,6 +112,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
             translators: settings.translators || {},
             defaultTargetLanguage: settings.defaultTargetLanguage || 'en',
             autoSwitchOnFailure: settings.autoSwitchOnFailure ?? true,
+            alwaysAppendLocaleSuffix: settings.alwaysAppendLocaleSuffix ?? true,
             usageMode: settings.usageMode || 'priority',
             usageStats: usageStats,
         };
