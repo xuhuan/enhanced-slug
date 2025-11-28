@@ -14,7 +14,7 @@ import {
   IconButton,
   Badge,
   ProgressBar,
-  Field, AccessibleIcon
+  Field
 } from '@strapi/design-system';
 import { Check, ArrowClockwise } from '@strapi/icons';
 import { useNotification } from '@strapi/strapi/admin';
@@ -104,6 +104,7 @@ const SettingsPage: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      console.log(settings)
       await api.put('/settings', settings);
       toggleNotification({
         type: 'success',
@@ -379,7 +380,7 @@ const SettingsPage: React.FC = () => {
                       {percentage.toFixed(1)}%
                     </Badge>
                   </Flex>
-                  <IconButton label={formatMessage({ id: getTranslation('usage.reset.button') })}
+                  <IconButton aria-label={formatMessage({ id: getTranslation('usage.reset.button') })}
                     onClick={() => handleResetUsage(name)}>
                     <ArrowClockwise />
                   </IconButton>
