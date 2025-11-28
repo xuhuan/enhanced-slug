@@ -1,8 +1,7 @@
-import { addPrefix, getTranslation } from './utils/getTranslation';
+import { addPrefix } from './utils/getTranslation';
 import { PLUGIN_ID } from './pluginId';
 import { Initializer } from './components/Initializer';
 import { PluginIcon } from './components/PluginIcon';
-import SettingsPage from './pages/Settings';
 
 export default {
   register(app: any) {

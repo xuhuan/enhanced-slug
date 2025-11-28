@@ -14,7 +14,7 @@ import {
   IconButton,
   Badge,
   ProgressBar,
-  Field, AccessibleIcon
+  Field
 } from '@strapi/design-system';
 import { Check, ArrowClockwise } from '@strapi/icons';
 import { useNotification } from '@strapi/strapi/admin';
@@ -55,6 +55,7 @@ interface Settings {
   };
   defaultTargetLanguage: string;
   autoSwitchOnFailure: boolean;
+  alwaysAppendLocaleSuffix: boolean;
   usageMode: 'priority' | 'balanced';
   usageStats?: {
     baidu?: UsageStats;
@@ -74,6 +75,7 @@ const SettingsPage: React.FC = () => {
     translators: {},
     defaultTargetLanguage: 'en',
     autoSwitchOnFailure: true,
+    alwaysAppendLocaleSuffix: true,
     usageMode: 'priority',
     usageStats: {},
   });
@@ -102,6 +104,7 @@ const SettingsPage: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      console.log(settings)
       await api.put('/settings', settings);
       toggleNotification({
         type: 'success',
@@ -195,7 +198,7 @@ const SettingsPage: React.FC = () => {
       </Flex>
 
       {activeTab === 'general' && (
-        <Box background="neutral0"  borderColor="neutral200" hasRadius padding={4}>
+        <Box background="neutral0" borderColor="neutral200" hasRadius padding={4}>
           <Grid.Root gap={4}>
             <Grid.Item col={12}>
               <Field.Root>
@@ -272,6 +275,25 @@ const SettingsPage: React.FC = () => {
                   checked={settings.autoSwitchOnFailure}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     setSettings((prev) => ({ ...prev, autoSwitchOnFailure: e.target.checked }))
+                  }
+                />
+                <Field.Hint />
+              </Field.Root>
+            </Grid.Item>
+
+            <Grid.Item col={12}>
+              <Field.Root
+                hint={formatMessage({ id: getTranslation('settings.suffix.hint') })}
+              >
+                <Field.Label>
+                  {formatMessage({ id: getTranslation('settings.suffix.label') })}
+                </Field.Label>
+                <Toggle
+                  onLabel={formatMessage({ id: getTranslation('settings.suffix.always') })}
+                  offLabel={formatMessage({ id: getTranslation('settings.suffix.smart') })}
+                  checked={settings.alwaysAppendLocaleSuffix}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSettings((prev) => ({ ...prev, alwaysAppendLocaleSuffix: e.target.checked }))
                   }
                 />
                 <Field.Hint />
@@ -358,7 +380,7 @@ const SettingsPage: React.FC = () => {
                       {percentage.toFixed(1)}%
                     </Badge>
                   </Flex>
-                  <IconButton label={formatMessage({ id: getTranslation('usage.reset.button') })}
+                  <IconButton aria-label={formatMessage({ id: getTranslation('usage.reset.button') })}
                     onClick={() => handleResetUsage(name)}>
                     <ArrowClockwise />
                   </IconButton>

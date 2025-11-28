@@ -1,5 +1,4 @@
-import { getTranslation } from '../utils/getTranslation';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Main } from '@strapi/design-system';
 import { Box, Grid, Button, TextInput, Field, SingleSelect, SingleSelectOption } from '@strapi/design-system';
 import { useFetchClient, useNotification } from '@strapi/strapi/admin';

@@ -1,18 +1,12 @@
 import axios, { AxiosInstance } from 'axios';
 import { PLUGIN_ID } from '../pluginId';
 
-// 1. 创建一个 Axios 实例
-// 这允许我们设置全局配置，如 baseURL，而不会影响 Strapi 管理后台中其他地方使用的 axios
 const instance: AxiosInstance = axios.create({
-    // baseURL 将所有请求都自动指向我们插件的 API 路由
     baseURL: `/${PLUGIN_ID}`,
 });
 
-// 2. 拦截器 (Interceptors) - 可选但推荐
-// 请求拦截器可以在每个请求发送前做一些事情，比如添加认证头
 instance.interceptors.request.use(
     async (config) => {
-        // 从 localStorage 获取 Strapi 的 JWT token
         const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
 
         // 如果 token 存在，则附加到请求的 Authorization header 中
@@ -28,12 +22,9 @@ instance.interceptors.request.use(
 // 响应拦截器可以在接收到响应后，返回数据前做一些事情
 instance.interceptors.response.use(
     (response) => {
-        // 通常，我们只关心响应体中的 `data` 部分
         return response.data;
     },
     (error) => {
-        // 在这里可以做统一的错误处理，比如：
-        // - 如果是 401 未授权，可以触发登出逻辑
         // - 弹出全局的错误通知
         console.error('API Error:', error.response?.data || error.message);
 
@@ -42,7 +33,6 @@ instance.interceptors.response.use(
     }
 );
 
-// 3. 封装并导出 API 方法
 const api = {
     /**
      * 发送 GET 请求

@@ -186,9 +186,9 @@ yarn add enhanced-slug
 
 下面是输入框效果和使用效果，关联字段内容变更后会自动触发生成，也可以手动点击按钮触发生成，或者自行修改最终的slug组件内容。
 
-<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use-en2.png width=800/>
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use2.png width=800/>
 
-<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use-en3.png width=800/>
+<img src=https://raw.githubusercontent.com/xuhuan/enhanced-slug/refs/heads/main/doc/images/use3.png width=800/>
 
 ## 配置界面
 

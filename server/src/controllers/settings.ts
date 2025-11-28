@@ -11,7 +11,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       const settingsService = strapi.plugin(PLUGIN_ID).service('settings');
       const settings: PluginSettings = await settingsService.getSettings();
 
-      // service 负责生成带 limit/available 的 usage stats，避免在 controller 重复实现逻辑
       const extendedUsageStats = await settingsService.getAllUsageStats();
 
       const response: Omit<PluginSettings, 'usageStats'> & {
@@ -35,10 +34,8 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     try {
       const settingsService = strapi.plugin(PLUGIN_ID).service('settings');
 
-      // 保存新的设置（service 会写入 store）
       const newSettings: PluginSettings = await settingsService.setSettings(ctx.request.body);
 
-      // 从 service 获取扩展后的 usage stats
       const extendedUsageStats = await settingsService.getAllUsageStats();
 
       const response: Omit<PluginSettings, 'usageStats'> & {

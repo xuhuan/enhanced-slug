@@ -34,6 +34,7 @@ export type PluginSettings = {
     };
     defaultTargetLanguage: string;
     autoSwitchOnFailure: boolean;
+    alwaysAppendLocaleSuffix: boolean;
     usageMode: UsageMode; // 使用模式
     usageStats: {
         baidu?: TranslatorUsageStats;
@@ -111,6 +112,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
             translators: settings.translators || {},
             defaultTargetLanguage: settings.defaultTargetLanguage || 'en',
             autoSwitchOnFailure: settings.autoSwitchOnFailure ?? true,
+            alwaysAppendLocaleSuffix: settings.alwaysAppendLocaleSuffix ?? true,
             usageMode: settings.usageMode || 'priority',
             usageStats: usageStats,
         };
@@ -155,10 +157,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
             return false;
         }
 
-        // 无限额限制
-        if (!config.monthlyCharLimit || config.monthlyCharLimit === 0) {
-            return true;
-        }
 
         const currentMonth = this.getCurrentMonth();
         const stats = settings.usageStats[translatorName as keyof typeof settings.usageStats];
@@ -166,6 +164,11 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         // 首次使用或跨月,自动重置
         if (!stats || stats.currentMonth !== currentMonth) {
             await this.resetUsageStats(translatorName);
+            return true;
+        }
+
+        // 无限额限制
+        if (!config.monthlyCharLimit || config.monthlyCharLimit === 0) {
             return true;
         }
 
@@ -232,21 +235,47 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     async getAllUsageStats(): Promise<Record<string, TranslatorUsageStats & { limit: number; available: number }>> {
         const settings = await this.getSettings();
         const result: Record<string, any> = {};
+        const currentMonth = this.getCurrentMonth();
+        let hasUpdates = false; // 标记是否有数据更新
 
         for (const [name, config] of Object.entries(settings.translators)) {
             if (!config) continue;
 
-            const stats = settings.usageStats[name as keyof typeof settings.usageStats];
+            let stats = settings.usageStats[name as keyof typeof settings.usageStats];
             const limit = config.monthlyCharLimit || 0;
-            const used = stats?.charsUsed || 0;
+
+            // 如果统计数据不存在，或者统计月份不是当前月份
+            if (!stats || stats.currentMonth !== currentMonth) {
+                // 创建新的统计数据
+                stats = {
+                    currentMonth: currentMonth,
+                    charsUsed: 0,
+                    // 如果是老数据过期了，更新重置时间；如果是全新的，也设置时间
+                    lastResetDate: new Date().toISOString(),
+                };
+
+                // 更新内存中的 settings 对象
+                if (!settings.usageStats) settings.usageStats = {};
+                settings.usageStats[name as keyof typeof settings.usageStats] = stats;
+
+                // 标记需要保存到数据库
+                hasUpdates = true;
+            }
+
+            const used = stats.charsUsed || 0;
 
             result[name] = {
-                currentMonth: stats?.currentMonth || this.getCurrentMonth(),
+                currentMonth: stats.currentMonth,
                 charsUsed: used,
-                lastResetDate: stats?.lastResetDate || new Date().toISOString(),
+                lastResetDate: stats.lastResetDate,
                 limit,
                 available: limit > 0 ? Math.max(0, limit - used) : Infinity,
             };
+        }
+
+        // 如果在读取过程中发现有跨月的数据，顺便保存回数据库，
+        if (hasUpdates) {
+            await this.saveSettings(settings);
         }
 
         return result;
